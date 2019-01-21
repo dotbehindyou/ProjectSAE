@@ -8,11 +8,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
-import javax.xml.soap.Text;
-
 public class AActor extends AObject{
     protected Vector2       size;
     protected Vector2       position;
+    protected float         rotation;
+    protected float         torque = 0.0f;
 
     private SpriteBatch   batch;
     private Texture       img;
@@ -20,9 +20,10 @@ public class AActor extends AObject{
 
     private Body          body;
 
+
     public AActor(float x, float y, float w, float h){
         this.batch = new SpriteBatch();
-        this.img = new Texture("core/assets/badlogic.jpg");
+        this.img = new Texture("core/assets/player.png");
         this.sprite = new Sprite(this.img);
 
         this.size = new Vector2(w, h);
@@ -30,11 +31,7 @@ public class AActor extends AObject{
 
     }
 
-    public AActor(Vector2 position, Vector2 size){
-        this.size = size;
-        this.position = position;
-    }
-
+    @Override
     public void initHitbox(World world){
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -49,8 +46,7 @@ public class AActor extends AObject{
         fixtureDef.shape = polygonShape;
         fixtureDef.density = 1f;
 
-        Fixture fixture = this.body.createFixture(fixtureDef);
-
+        this.body.createFixture(fixtureDef);
         polygonShape.dispose();
     }
 
@@ -58,13 +54,23 @@ public class AActor extends AObject{
     public void update(){
     }
 
+    protected void applyForce(Vector2 force){
+        this.body.applyForce( new Vector2(
+                this.body.getMass() * (force.x * 12),
+                this.body.getMass() * (force.y * 12)),
+                body.getWorldPoint(new Vector2(0.5f, -5)), true);
+    }
+
     private void _update(){
         this.update();
 
-        position.set(body.getPosition());
+        this.position.set(this.body.getPosition());
+        this.body.applyTorque(this.torque, true);
 
-        sprite.setPosition(position.x, position.y);
-        sprite.setSize(size.x, size.y);
+        this.sprite.setPosition(this.position.x, this.position.y);
+        this.sprite.setSize(this.size.x, this.size.y);
+        this.sprite.setRotation(this.rotation);
+
     }
 
     public Vector2 getPosition() {
