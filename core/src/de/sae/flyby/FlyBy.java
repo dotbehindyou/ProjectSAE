@@ -8,15 +8,18 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
+import de.sae.flyby.actor.AActor;
+import de.sae.flyby.actor.AEnemie;
 import de.sae.flyby.actor.AObject;
 import de.sae.flyby.actor.APlayer;
 import de.sae.flyby.hitbox.AHitbox;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class FlyBy extends ApplicationAdapter {
-	Collection<AObject> wObjects;
+	public static final Collection<AObject> wObjects = new ArrayList<AObject>();;
 
 	World mWorld;
 
@@ -24,9 +27,10 @@ public class FlyBy extends ApplicationAdapter {
 	
 	@Override
 	public void create () {
-		wObjects = new ArrayList<AObject>();
-
-		wObjects.add(new APlayer(Gdx.graphics.getWidth() / 2 - 20,Gdx.graphics.getWidth() / 2- 20,20,20));
+		for(int i = 0; i < 10; ++i){
+			wObjects.add(new AEnemie());
+		}
+		wObjects.add(new APlayer(20,20,20,20));
 
 		mWorld = new World(new Vector2(0, 0), true);
 		mWorld.setContactListener(new AHitbox());
@@ -47,17 +51,20 @@ public class FlyBy extends ApplicationAdapter {
 
 		mWorld.step(Gdx.graphics.getDeltaTime(), 6, 2);
 
+		List<AObject> remove = new ArrayList<AObject>();
 		for (AObject obj: wObjects) {
+			if(obj instanceof AEnemie){
+				if(Gdx.graphics.getWidth() < ((AEnemie) obj).getPosition().x) {
+					remove.add(obj);
+				}
+			}
 			obj.render();
 		}
+		wObjects.removeAll(remove);
 	}
 	
 	@Override
 	public void dispose () {
 		mWorld.dispose();
-
-		for (AObject obj: wObjects) {
-			obj.dispose();
-		}
 	}
 }

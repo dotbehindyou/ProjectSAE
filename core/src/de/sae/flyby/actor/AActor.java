@@ -7,8 +7,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import de.sae.flyby.FlyBy;
 
-public class AActor extends AObject{
+public class AActor extends AObject {
     protected Vector2       size;
     protected Vector2       position;
     protected float         rotation;
@@ -54,11 +55,8 @@ public class AActor extends AObject{
     public void update(){
     }
 
-    protected void applyForce(Vector2 force){
-        this.body.applyForce( new Vector2(
-                this.body.getMass() * (force.x * 12),
-                this.body.getMass() * (force.y * 12)),
-                body.getWorldPoint(new Vector2(0.5f, -5)), true);
+    protected void lineareVelocity(Vector2 force, float speed){
+        this.body.setLinearVelocity(force.x * speed,force.y * speed );
     }
 
     private void _update(){
@@ -71,6 +69,11 @@ public class AActor extends AObject{
         this.sprite.setSize(this.size.x, this.size.y);
         this.sprite.setRotation(this.rotation);
 
+    }
+
+    @Override
+    public Body getBody(){
+        return this.body;
     }
 
     public Vector2 getPosition() {
@@ -95,5 +98,6 @@ public class AActor extends AObject{
     public void dispose(){
         batch.dispose();
         img.dispose();
+        FlyBy.wObjects.remove(this);
     }
 }
