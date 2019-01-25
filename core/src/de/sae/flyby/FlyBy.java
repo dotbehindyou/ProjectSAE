@@ -2,40 +2,31 @@ package de.sae.flyby;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.*;
-
-import de.sae.flyby.actor.AObject;
-import de.sae.flyby.actor.APlayer;
-import de.sae.flyby.hitbox.AHitbox;
-
-import java.util.ArrayList;
-import java.util.Collection;
+//import de.sae.flyby.stage.GameStage;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import de.sae.flyby.stage.GameStage;
+import de.sae.flyby.stage.MenuStage;
 
 public class FlyBy extends ApplicationAdapter {
-	Collection<AObject> wObjects;
+	public static BitmapFont getFont(int size){
+		final FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("core/assets/font.ttf"));
+		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+		parameter.size = size;
+		parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS;
 
-	World mWorld;
+		return generator.generateFont(parameter);
+	}
 
-	Camera mCamera;
-	
+	private MenuStage menuStage;
+	private GameStage gameStage;
+
 	@Override
 	public void create () {
-		wObjects = new ArrayList<AObject>();
+		menuStage = new MenuStage(true);
 
-		wObjects.add(new APlayer(Gdx.graphics.getWidth() / 2 - 20,Gdx.graphics.getWidth() / 2- 20,20,20));
-
-		mWorld = new World(new Vector2(0, 0), true);
-		mWorld.setContactListener(new AHitbox());
-
-		mCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-		for (AObject obj: wObjects){
-			obj.initHitbox(mWorld);
-		}
+		Gdx.input.setInputProcessor(menuStage);
 	}
 
 	@Override
@@ -43,21 +34,26 @@ public class FlyBy extends ApplicationAdapter {
 		Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		mCamera.update();
+		menuStage.act(Gdx.graphics.getDeltaTime());
+		menuStage.draw();
+	}
 
-		mWorld.step(Gdx.graphics.getDeltaTime(), 6, 2);
+	@Override
+	public void resize(int width, int height){
 
-		for (AObject obj: wObjects) {
-			obj.render();
-		}
+	}
+
+	@Override
+	public void pause(){
+
+	}
+
+	@Override
+	public void resume(){
+
 	}
 	
 	@Override
 	public void dispose () {
-		mWorld.dispose();
-
-		for (AObject obj: wObjects) {
-			obj.dispose();
-		}
 	}
 }
