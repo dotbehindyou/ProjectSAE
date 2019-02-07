@@ -2,27 +2,95 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import de.sae.flyby.actor.AActor;
 import de.sae.flyby.actor.Background;
 import de.sae.flyby.actor.Enemy;
 import de.sae.flyby.actor.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 //TODO: Pause menu, background music
 public class GameScreen implements Screen {
     private Stage ingame;
 
-    private Player player;
+    public World world;
+    List<Body> bodys = new ArrayList<Body>();
+
+    Box2DDebugRenderer debugRenderer;
+    Matrix4 debugMatrix;
+
+    Camera cam;
 
     public GameScreen(){
         ingame = new Stage();
-        this.player = new Player();
+        Box2D.init();
+
+        cam = ingame.getCamera();
+
+        this.world = new World(new Vector2(0, -98f), true);
+
+        this.world.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+                System.out.println("TEST");
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+
+            }
+        });
+
+        this.debugMatrix = new Matrix4(cam.combined);
+        this.debugMatrix.scale(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 1f);
+
+
+        this.debugRenderer = new Box2DDebugRenderer();
+    }
+
+    private void addBody(AActor actor){
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.position.set(new Vector2(actor.getX(), actor.getY()));
+
+        Body body = world.createBody(bodyDef);
+        
+        PolygonShape hitbox = new PolygonShape();
+        hitbox.setAsBox(actor.getWidth(), actor.getHeight());
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = hitbox;
+        fixtureDef.density = 1f;
+
+        body.createFixture(hitbox, 0.0f);
+
+        body.setUserData(actor);
+        actor.setBody(body);
+
+        hitbox.dispose();
+        ingame.addActor(actor);
     }
 
     @Override
     public void show(){
-        ingame.addActor(new Background());
-        ingame.addActor(this.player);
-        ingame.addActor(new Enemy());
+        //ingame.addActor(new Background());
+        this.addBody(new Player());
+        this.addBody(new Enemy());
     }
 
     @Override
@@ -30,6 +98,9 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(Gdx.gl20.GL_COLOR_BUFFER_BIT);
 
+        debugRenderer.render(world, debugMatrix);
+
+        world.step(Gdx.graphics.getDeltaTime(), 6, 2);
         ingame.act(Gdx.graphics.getDeltaTime());
         ingame.draw();
     }

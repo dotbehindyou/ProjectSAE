@@ -3,65 +3,52 @@ package de.sae.flyby.actor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import de.sae.flyby.SAEGame;
+import de.sae.flyby.screen.GameScreen;
 
 public class AActor extends Actor {
-    private SpriteBatch spriteBatch;
-    private Sprite sprite;
-    protected Texture texture;
-
-    private Vector2 position;
-    private Vector2 size;
-    private float rotate;
+    protected TextureRegion texture;
+    protected float rotation;
 
     private Body body;
 
-    public AActor(Vector2 position, Vector2 size){
-        this.position = position;
-        this.size = size;
+    public AActor(float x, float y, float w, float h) {
+        this.texture = new TextureRegion();
 
-        //Physik
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(position.x, position.y);
-
-        this.body = SAEGame.currentGame.getWorld().createBody(bodyDef);
-
-        PolygonShape box = new PolygonShape();
-        box.setAsBox(this.size.x, this.size.y);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = box;
-        fixtureDef.density = 0.5f;
-        fixtureDef.friction = 0.4f;
-        fixtureDef.restitution = 0.6f;
-
-        Fixture fixture = body.createFixture(fixtureDef);
-
-        box.dispose();
+        this.setBounds(x, y, w, h);
     }
 
     public void setTexture(Texture texture){
-        this.texture = texture;
+        this.texture = new TextureRegion( texture);
+    }
 
-        this.sprite = new Sprite(texture, 0,0,this.texture.getWidth(),this.texture.getHeight());
-        this.sprite.setRotation(this.rotate);
+    public void setTexture(TextureRegion texture){
+        this.texture = texture;
+    }
+
+    public void setBody(Body body){
+        this.body = body;
+    }
+
+    public void move(float x, float y){
+        this.body.setLinearVelocity( x * Gdx.graphics.getDeltaTime() , y * Gdx.graphics.getDeltaTime());
     }
 
     @Override
     public void draw(Batch batch, float alpha){
-        sprite.draw(batch);
+        batch.draw(texture, this.body.getPosition().x, this.body.getPosition().y, 0, 0, getWidth(), getHeight(), 1, 1, getRotation());
+    }
+
+    public void update(float deltaTime){
     }
 
     @Override
     public void act(float deltaTime){
-        body.setLinearVelocity(10f * deltaTime, 0);
-
-        sprite.setPosition(body.getPosition().x, body.getPosition().y);
+        this.update(deltaTime);
+        this.setRotation(rotation);
+        this.setPosition(this.body.getPosition().x, this.body.getPosition().y);
+        //System.out.println(this.body.getPosition().y);
     }
 }

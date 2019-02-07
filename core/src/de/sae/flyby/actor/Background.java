@@ -10,7 +10,7 @@ public class Background extends Actor {
     private Texture background1, background2;
 
     float xMax, xCoordBg1, xCoordBg2;
-    private static int BACKGROUND_MOVE_SPEED = 100;
+    private static int BACKGROUND_MOVE_SPEED = 200;
 
     public Background(){
         this.background1 = new Texture(Gdx.files.internal("core/assets/background.jpg"));
@@ -23,8 +23,8 @@ public class Background extends Actor {
 
     @Override
     public void draw(Batch batch, float alpha){
-        batch.draw(this.background1, this.xCoordBg1, 0);
-        batch.draw(this.background2, this.xCoordBg2, 0);
+        batch.draw(this.background1, this.xCoordBg1, 0, this.background1.getWidth(), this.background1.getHeight());
+        batch.draw(this.background2, this.xCoordBg2, 0, this.background2.getWidth(), this.background2.getHeight());
     }
 
     @Override

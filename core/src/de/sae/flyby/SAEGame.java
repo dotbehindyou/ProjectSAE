@@ -19,35 +19,8 @@ public class SAEGame extends Game {
     }
     public static SAEGame currentGame;
 
-    private World world;
-
     public SAEGame(){
-        this.world = new World(new Vector2(4f, 0), false);
-        this.world.setContactListener(new ContactListener() {
-            @Override
-            public void beginContact(Contact contact) {
-                System.out.println("TEST");
-            }
-
-            @Override
-            public void endContact(Contact contact) {
-
-            }
-
-            @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
-
-            }
-
-            @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
-
-            }
-        });
-    }
-
-    public World getWorld(){
-        return this.world;
+        SAEGame.currentGame = this;
     }
 
     @Override
