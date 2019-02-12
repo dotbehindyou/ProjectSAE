@@ -1,32 +1,36 @@
 package de.sae.flyby.actor;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.scenes.scene2d.Group;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import de.sae.flyby.SAEGame;
+import de.sae.flyby.MainGame;
+
+import java.util.Random;
 
 public class Grade extends AActor {
+    TextureRegion[] grades = new TextureRegion[6];
+    int currentGrade;
 
+    public Grade(float x, float y, float w, float h){
+        super(x, y, w, h);
 
-    public Grade(float x, float y){
-        super(x, y, 10, 10);
+        grades[0] = new TextureRegion(MainGame.getTexture(), 0, 128, 32, 32);
+        grades[1] = new TextureRegion(MainGame.getTexture(), 32, 128, 32, 32);
+        grades[2] = new TextureRegion(MainGame.getTexture(), 64, 128, 32, 32);
+        grades[3] = new TextureRegion(MainGame.getTexture(), 0, 160, 32, 32);
+        grades[4] = new TextureRegion(MainGame.getTexture(), 32, 160, 32, 32);
+        grades[5] = new TextureRegion(MainGame.getTexture(), 64, 160, 32, 32);
 
-        String gradeChar = "1";
+        currentGrade = new Random().nextInt(6);
 
-        Label.LabelStyle gradeStyle = new Label.LabelStyle();
-        gradeStyle.font = SAEGame.getFont(15);
-        gradeStyle.fontColor = Color.BLACK;
+        this.setTexture(grades[currentGrade]);
+    }
 
-        Label gradeText = new Label(gradeChar, gradeStyle);
+    public int getValue(){
+        return currentGrade;
     }
 
     @Override
     public void update(float deltaTime)
     {
-
+        this.move(-20f, 0);
     }
 }

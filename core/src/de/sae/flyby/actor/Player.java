@@ -12,6 +12,10 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import de.sae.flyby.MainGame;
 import de.sae.flyby.SAEGame;
+import de.sae.flyby.screen.GameScreen;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Player extends AActor {
     public float speed = 10f;
@@ -43,7 +47,19 @@ public class Player extends AActor {
         this.move(x, y);
     }
 
+    long lastTime = System.currentTimeMillis();
+    long elapsedTime = 0L;
+    Boolean isCooldown = false;
     public void shoot(){
+        if(!isCooldown){
+            GameScreen.getCurrentGameScreen.addActor(new Grade(this.getX() - 50f, this.getY() + (this.getHeight() / 2f), 32, 32));
+            isCooldown = true;
+        }
 
+        if(lastTime + (500) < elapsedTime) {
+            lastTime = elapsedTime;
+            isCooldown = false;
+        }
+        elapsedTime = System.currentTimeMillis();
     }
 }

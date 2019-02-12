@@ -2,11 +2,8 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -15,14 +12,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Array;
 import de.sae.flyby.SAEGame;
-import de.sae.flyby.actor.AActor;
-import de.sae.flyby.actor.Background;
-import de.sae.flyby.actor.Enemy;
-import de.sae.flyby.actor.Player;
+import de.sae.flyby.actor.*;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 //TODO: Pause menu, background music
 public class GameScreen implements Screen {
@@ -49,21 +44,40 @@ public class GameScreen implements Screen {
                 {
                     if (fixA.getUserData().equals("right") ||
                             fixB.getUserData().equals("right")) {
-                        if (fixA.getUserData().getClass() == new Enemy().getClass()) {
+                        if (fixA.getUserData() instanceof Enemy) {
                             ((Enemy) fixA.getUserData()).remove();
-
-                        } else if (fixB.getUserData().getClass() == new Enemy().getClass()) {
+                            fixA.setUserData("isDead");
+                        } else if (fixB.getUserData() instanceof Enemy) {
                             ((Enemy) fixB.getUserData()).remove();
+                            fixB.setUserData("isDead");
                         }
-                    } else if (fixA.getUserData().getClass() == new Player().getClass() ||
-                            fixB.getUserData().getClass() == new Player().getClass()) {
-                        if (fixA.getUserData().getClass() == new Enemy().getClass()) {
+                    } else if (fixA.getUserData() instanceof Player ||
+                            fixB.getUserData() instanceof Player) {
+                        if (fixA.getUserData() instanceof Enemy) {
                             ((Player) fixB.getUserData()).remove();
                             getCurrentGameScreen.gameOver();
 
-                        } else if (fixB.getUserData().getClass() == new Enemy().getClass()) {
+                        } else if (fixB.getUserData() instanceof Enemy) {
                             ((Player) fixA.getUserData()).remove();
                             getCurrentGameScreen.gameOver();
+                        }
+                    } else if(fixA.getUserData() instanceof Grade  ||
+                                fixB.getUserData() instanceof Grade)
+                    {
+                        if (fixA.getUserData().equals("left")){
+                            ((Grade)fixB.getUserData()).remove();
+                            fixB.setUserData("isDead");
+                        } else if(fixB.getUserData().equals("left")){
+                            ((Grade)fixA.getUserData()).remove();
+                            fixA.setUserData("isDead");
+                        }else if(fixA.getUserData() instanceof Enemy){
+                            ((Enemy)fixA.getUserData()).getHitFromHit(((Grade)fixB.getUserData()).getValue());
+                            ((Grade)fixB.getUserData()).remove();
+                            fixB.setUserData("isDead");
+                        }else if(fixB.getUserData() instanceof Enemy){
+                            ((Grade)fixA.getUserData()).remove();
+                            fixA.setUserData("isDead");
+                            ((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue());
                         }
                     }
                 }
@@ -83,6 +97,18 @@ public class GameScreen implements Screen {
         });
 
         getCurrentGameScreen = this;
+    }
+
+
+    public void clearDeadBodys() {
+        Array<Body> iter = new Array<Body>();
+        getCurrentGameScreen.world.getBodies(iter);
+        for (Body body : iter ) {
+            if (body != null && body.getUserData() != null && body.getUserData().equals("isDead")) {
+                GameScreen.getCurrentGameScreen.world.destroyBody(body);
+                body.setUserData(null);
+            }
+        }
     }
 
     private void generateBorder(){
@@ -129,7 +155,7 @@ public class GameScreen implements Screen {
         groundBox.dispose();
     }
 
-    private void addBody(AActor actor){
+    public void addActor(AActor actor){
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(new Vector2(actor.getX(), actor.getY()));
@@ -137,7 +163,7 @@ public class GameScreen implements Screen {
         Body body = world.createBody(bodyDef);
         
         PolygonShape hitbox = new PolygonShape();
-        hitbox.setAsBox(32f, 32f, new Vector2(32f, 32f), 0);
+        hitbox.setAsBox(actor.getWidth() / 2, actor.getHeight() / 2, new Vector2(actor.getWidth() / 2, actor.getHeight() / 2), 0);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = hitbox;
@@ -152,10 +178,11 @@ public class GameScreen implements Screen {
         ingame.addActor(actor);
     }
 
-    Table table = new Table();
-
+    Table table;
     public void gameOver(){
         gameover = new Stage();
+
+        table = new Table();
 
         table.setFillParent(true);
         table.setDebug(false);
@@ -164,7 +191,7 @@ public class GameScreen implements Screen {
 
         this.createTitle("Game Over");
 
-        this.createButton("Start",new ChangeListener() {
+        this.createButton("Neustart",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 SAEGame.currentGame.setScreen(new GameScreen());
@@ -177,7 +204,7 @@ public class GameScreen implements Screen {
                 Gdx.app.exit();
             }
         });*/
-        this.createButton("Close",new ChangeListener() {
+        this.createButton("Schliessen",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
@@ -220,8 +247,8 @@ public class GameScreen implements Screen {
         this.generateBorder();
 
         ingame.addActor(new Background());
-        this.addBody(new Player());
-        this.addBody(new Enemy());
+        this.addActor(new Player());
+        this.addActor(new Enemy());
     }
 
     @Override
@@ -238,6 +265,7 @@ public class GameScreen implements Screen {
             gameover.act(Gdx.graphics.getDeltaTime());
             gameover.draw();
         }
+        clearDeadBodys();
     }
 
     @Override

@@ -53,7 +53,7 @@ public class MenuScreen implements Screen {
                 Gdx.app.exit();
             }
         });*/
-        this.createButton("Close",new ChangeListener() {
+        this.createButton("Schliessen",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();

@@ -1,14 +1,11 @@
 package de.sae.flyby.actor;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import de.sae.flyby.screen.GameScreen;
 
 public class AActor extends Actor {
     final float PIXELS_TO_METERS = 100f;
@@ -18,7 +15,7 @@ public class AActor extends Actor {
     protected TextureRegion texture;
     protected float rotation;
 
-    private Body body;
+    protected Body body;
 
     public AActor(float x, float y, float w, float h) {
         this.texture = new TextureRegion();
@@ -55,6 +52,5 @@ public class AActor extends Actor {
         this.update(deltaTime);
         this.setRotation(rotation);
         this.setPosition(this.body.getPosition().x, this.body.getPosition().y);
-        //System.out.println(this.body.getPosition().y);
     }
 }
