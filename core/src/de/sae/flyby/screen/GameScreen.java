@@ -3,10 +3,19 @@ package de.sae.flyby.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.AActor;
 import de.sae.flyby.actor.Background;
 import de.sae.flyby.actor.Enemy;
@@ -17,51 +26,107 @@ import java.util.List;
 
 //TODO: Pause menu, background music
 public class GameScreen implements Screen {
+    public static GameScreen getCurrentGameScreen;
+
     private Stage ingame;
-
+    private Stage gameover;
     public World world;
-    List<Body> bodys = new ArrayList<Body>();
-
-    Box2DDebugRenderer debugRenderer;
-    Matrix4 debugMatrix;
-
-    Camera cam;
 
     public GameScreen(){
         ingame = new Stage();
         Box2D.init();
-
-        cam = ingame.getCamera();
 
         this.world = new World(new Vector2(98f, 0), true);
 
         this.world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
-                System.out.println("TEST");
+                Body fixA = contact.getFixtureA().getBody();
+                Body fixB = contact.getFixtureB().getBody();
+
+                if (fixA != null && fixB != null &&
+                        fixA.getUserData() != null && fixB.getUserData() != null)
+                {
+                    if (fixA.getUserData().equals("right") ||
+                            fixB.getUserData().equals("right")) {
+                        if (fixA.getUserData().getClass() == new Enemy().getClass()) {
+                            ((Enemy) fixA.getUserData()).remove();
+
+                        } else if (fixB.getUserData().getClass() == new Enemy().getClass()) {
+                            ((Enemy) fixB.getUserData()).remove();
+                        }
+                    } else if (fixA.getUserData().getClass() == new Player().getClass() ||
+                            fixB.getUserData().getClass() == new Player().getClass()) {
+                        if (fixA.getUserData().getClass() == new Enemy().getClass()) {
+                            ((Player) fixB.getUserData()).remove();
+                            getCurrentGameScreen.gameOver();
+
+                        } else if (fixB.getUserData().getClass() == new Enemy().getClass()) {
+                            ((Player) fixA.getUserData()).remove();
+                            getCurrentGameScreen.gameOver();
+                        }
+                    }
+                }
             }
 
             @Override
             public void endContact(Contact contact) {
-
             }
 
             @Override
             public void preSolve(Contact contact, Manifold oldManifold) {
-
             }
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
-
             }
         });
 
-        this.debugMatrix = new Matrix4(cam.combined);
-        this.debugMatrix.scale(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 1f);
+        getCurrentGameScreen = this;
+    }
 
+    private void generateBorder(){
+        BodyDef groundBodyDef = new BodyDef();
 
-        this.debugRenderer = new Box2DDebugRenderer();
+        groundBodyDef.type = BodyDef.BodyType.StaticBody;
+        groundBodyDef.position.set(new Vector2(0, 0));
+        Body top = world.createBody(groundBodyDef);
+        groundBodyDef = new BodyDef();
+
+        groundBodyDef = new BodyDef();
+        groundBodyDef.type = BodyDef.BodyType.StaticBody;
+        groundBodyDef.position.set(new Vector2(0, ingame.getCamera().viewportHeight));
+        Body bottom = world.createBody(groundBodyDef);
+
+        groundBodyDef = new BodyDef();
+        groundBodyDef.type = BodyDef.BodyType.StaticBody;
+        groundBodyDef.position.set(new Vector2(0, 0));
+        Body left = world.createBody(groundBodyDef);
+        left.setUserData("left");
+
+        groundBodyDef = new BodyDef();
+        groundBodyDef.type = BodyDef.BodyType.StaticBody;
+        groundBodyDef.position.set(new Vector2(ingame.getCamera().viewportWidth, 0));
+        Body right = world.createBody(groundBodyDef);
+        right.setUserData("right");
+
+        PolygonShape groundBox = new PolygonShape();
+        groundBox.setAsBox(ingame.getCamera().viewportWidth, 1f);
+        top.createFixture(groundBox, 0.0f);
+
+        groundBox = new PolygonShape();
+        groundBox.setAsBox(ingame.getCamera().viewportWidth, 1f);
+        bottom.createFixture(groundBox, 0.0f);
+
+        groundBox = new PolygonShape();
+        groundBox.setAsBox(1f, ingame.getCamera().viewportHeight);
+        left.createFixture(groundBox, 0.0f);
+
+        groundBox = new PolygonShape();
+        groundBox.setAsBox(1f, ingame.getCamera().viewportHeight);
+        right.createFixture(groundBox, 0.0f);
+
+        groundBox.dispose();
     }
 
     private void addBody(AActor actor){
@@ -72,7 +137,7 @@ public class GameScreen implements Screen {
         Body body = world.createBody(bodyDef);
         
         PolygonShape hitbox = new PolygonShape();
-        hitbox.setAsBox(actor.getWidth(), actor.getHeight());
+        hitbox.setAsBox(32f, 32f, new Vector2(32f, 32f), 0);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = hitbox;
@@ -80,15 +145,80 @@ public class GameScreen implements Screen {
 
         body.createFixture(hitbox, 0.0f);
 
-        body.setUserData(actor);
+        body.setUserData((AActor)actor);
         actor.setBody(body);
 
         hitbox.dispose();
         ingame.addActor(actor);
     }
 
+    Table table = new Table();
+
+    public void gameOver(){
+        gameover = new Stage();
+
+        table.setFillParent(true);
+        table.setDebug(false);
+
+        gameover.addActor(table);
+
+        this.createTitle("Game Over");
+
+        this.createButton("Start",new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                SAEGame.currentGame.setScreen(new GameScreen());
+            }
+        });
+        //TODO: Option Stage
+        /*this.createButton("Options",new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });*/
+        this.createButton("Close",new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });
+    }
+
+    private void createTitle(String text){
+        TextField.TextFieldStyle titleStyle = new TextField.TextFieldStyle();
+        titleStyle.font = SAEGame.getFont(45);
+        titleStyle.fontColor = Color.OLIVE;
+
+        TextField titleGame = new TextField(text, titleStyle);
+        titleGame.setDisabled(true);
+
+        table.add(titleGame).size(400, 200);
+        table.row().pad(10, 0, 10, 0);
+    }
+
+    private void createButton(String text, ChangeListener listener){
+        TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
+
+        BitmapFont font = SAEGame.getFont(25);
+        btnStyle.font = font;
+
+        btnStyle.downFontColor = Color.RED;
+        btnStyle.overFontColor = Color.GRAY;
+        btnStyle.fontColor = Color.BLACK;
+
+        TextButton btn = new TextButton(text, btnStyle);
+
+        btn.addListener(listener);
+
+        table.add(btn).fillX().uniformX();
+        table.row().pad(10, 0, 10, 0);
+    }
+
     @Override
     public void show(){
+        this.generateBorder();
+
         ingame.addActor(new Background());
         this.addBody(new Player());
         this.addBody(new Enemy());
@@ -99,11 +229,15 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(Gdx.gl20.GL_COLOR_BUFFER_BIT);
 
-        debugRenderer.render(world, debugMatrix);
-
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
+
         ingame.act(Gdx.graphics.getDeltaTime());
         ingame.draw();
+
+        if(gameover != null){
+            gameover.act(Gdx.graphics.getDeltaTime());
+            gameover.draw();
+        }
     }
 
     @Override

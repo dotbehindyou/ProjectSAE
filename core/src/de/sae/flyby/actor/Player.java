@@ -10,16 +10,16 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import de.sae.flyby.MainGame;
 import de.sae.flyby.SAEGame;
 
 public class Player extends AActor {
     public float speed = 10f;
 
     public Player(){
-        super((Gdx.graphics.getWidth() - 100), (Gdx.graphics.getHeight() / 2) - (50 / 2), 50, 50);
+        super((Gdx.graphics.getWidth() - 100), (Gdx.graphics.getHeight() / 2) - (50 / 2), 64, 64);
 
-        this.rotation = 90f;
-        this.setTexture(new Texture(Gdx.files.internal("core/assets/player.png")));
+        this.setTexture(new TextureRegion(MainGame.getTexture(), 448, 0, 64, 64));
     }
 
     @Override
@@ -37,6 +37,13 @@ public class Player extends AActor {
         if(Gdx.input.isKeyPressed(Input.Keys.D)){
             x = 1f * speed;
         }
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)){
+            this.shoot();
+        }
         this.move(x, y);
+    }
+
+    public void shoot(){
+
     }
 }

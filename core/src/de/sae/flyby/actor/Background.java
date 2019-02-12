@@ -13,7 +13,7 @@ public class Background extends Actor {
     private static int BACKGROUND_MOVE_SPEED = 200;
 
     public Background(){
-        this.background1 = new Texture(Gdx.files.internal("core/assets/background.jpg"));
+        this.background1 = new Texture(Gdx.files.internal("core/assets/img/background.jpg"));
         this.background2 = new Texture(this.background1.getTextureData());
 
         this.xMax = 1280;

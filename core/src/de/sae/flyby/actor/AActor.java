@@ -1,14 +1,20 @@
 package de.sae.flyby.actor;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import de.sae.flyby.screen.GameScreen;
 
 public class AActor extends Actor {
+    final float PIXELS_TO_METERS = 100f;
+
+    Matrix4 debugMatrix;
+
     protected TextureRegion texture;
     protected float rotation;
 
@@ -29,7 +35,6 @@ public class AActor extends Actor {
     }
 
     public void setBody(Body body){
-        body.setUserData(texture);
         this.body = body;
     }
 
@@ -37,12 +42,12 @@ public class AActor extends Actor {
         this.body.setLinearVelocity(x * 10f , y * 10f);
     }
 
+    public void update(float deltaTime){
+    }
+
     @Override
     public void draw(Batch batch, float alpha){
         batch.draw(texture, this.body.getPosition().x, this.body.getPosition().y, 0, 0, getWidth(), getHeight(), 1, 1, getRotation());
-    }
-
-    public void update(float deltaTime){
     }
 
     @Override

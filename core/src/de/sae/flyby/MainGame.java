@@ -2,6 +2,7 @@ package de.sae.flyby;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import de.sae.flyby.screen.GameScreens;
@@ -14,6 +15,13 @@ public class MainGame extends Game {
         parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS;
 
         return generator.generateFont(parameter);
+    }
+    private static Texture textureBuffer;
+    public static Texture getTexture(){
+        if(textureBuffer == null){
+            textureBuffer = new Texture(Gdx.files.internal("core/assets/img/img.png"));
+        }
+        return textureBuffer;
     }
 
     public static MainGame currentGame;
