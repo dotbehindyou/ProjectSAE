@@ -29,11 +29,12 @@ public class AActor extends Actor {
     }
 
     public void setBody(Body body){
+        body.setUserData(texture);
         this.body = body;
     }
 
     public void move(float x, float y){
-        this.body.setLinearVelocity( x * Gdx.graphics.getDeltaTime() , y * Gdx.graphics.getDeltaTime());
+        this.body.setLinearVelocity(x * 10f , y * 10f);
     }
 
     @Override

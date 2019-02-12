@@ -33,7 +33,7 @@ public class GameScreen implements Screen {
 
         cam = ingame.getCamera();
 
-        this.world = new World(new Vector2(0, -98f), true);
+        this.world = new World(new Vector2(98f, 0), true);
 
         this.world.setContactListener(new ContactListener() {
             @Override
@@ -66,6 +66,7 @@ public class GameScreen implements Screen {
 
     private void addBody(AActor actor){
         BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(new Vector2(actor.getX(), actor.getY()));
 
         Body body = world.createBody(bodyDef);
@@ -88,7 +89,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show(){
-        //ingame.addActor(new Background());
+        ingame.addActor(new Background());
         this.addBody(new Player());
         this.addBody(new Enemy());
     }
