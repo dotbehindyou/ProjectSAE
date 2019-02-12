@@ -10,8 +10,8 @@ public class Enemy extends AActor {
 
     public TextureRegion[] textureRegions = new TextureRegion[5];
 
-    public Enemy(){
-        super(20, 20, 64, 64);
+    public Enemy(float x, float y){
+        super(x, y, 64, 64);
         //TODO Random Enemy auswählen (Bsp.: Paul = 50%, Jann = 30%, Sebbi = 20%, Chris = 5%)
         //TODO Leben (Bsp.: Paul = 10hp, Jann = 20hp, Sebbi = 35hp, Chris 50hp;
 

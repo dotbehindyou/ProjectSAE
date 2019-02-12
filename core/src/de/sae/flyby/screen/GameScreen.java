@@ -18,6 +18,7 @@ import de.sae.flyby.actor.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 //TODO: Pause menu, background music
 public class GameScreen implements Screen {
@@ -76,8 +77,8 @@ public class GameScreen implements Screen {
                             fixB.setUserData("isDead");
                         }else if(fixB.getUserData() instanceof Enemy){
                             ((Grade)fixA.getUserData()).remove();
-                            fixA.setUserData("isDead");
                             ((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue());
+                            fixA.setUserData("isDead");
                         }
                     }
                 }
@@ -242,13 +243,28 @@ public class GameScreen implements Screen {
         table.row().pad(10, 0, 10, 0);
     }
 
+    long lastTime = System.currentTimeMillis();
+    long elapsedTime = 0L;
+    int spawnTicks = 500;
+    public void spawnEnemy(){
+        if(lastTime + (spawnTicks) < elapsedTime) {
+            lastTime = elapsedTime;
+
+            final int MARGIN_TOP = 10;
+            final int MARGIN_BOTTOM = 10;
+
+            int spawnPos = new Random().nextInt((Gdx.graphics.getHeight() - MARGIN_TOP) + 1) + MARGIN_BOTTOM;
+            addActor(new Enemy(0, spawnPos));
+        }
+        elapsedTime = System.currentTimeMillis();
+    }
+
     @Override
     public void show(){
         this.generateBorder();
 
         ingame.addActor(new Background());
         this.addActor(new Player());
-        this.addActor(new Enemy());
     }
 
     @Override
@@ -265,6 +281,8 @@ public class GameScreen implements Screen {
             gameover.act(Gdx.graphics.getDeltaTime());
             gameover.draw();
         }
+
+        spawnEnemy();
         clearDeadBodys();
     }
 
