@@ -55,7 +55,6 @@ public class Player extends AActor {
             GameScreen.getCurrentGameScreen.addActor(new Grade(this.getX() - 50f, this.getY() + (this.getHeight() / 2f), 32, 32));
             isCooldown = true;
         }
-
         if(lastTime + (500) < elapsedTime) {
             lastTime = elapsedTime;
             isCooldown = false;

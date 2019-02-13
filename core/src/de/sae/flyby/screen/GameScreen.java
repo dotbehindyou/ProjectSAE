@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.*;
+import de.sae.flyby.stage.StageHUD;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,12 +25,14 @@ import java.util.Random;
 public class GameScreen implements Screen {
     public static GameScreen getCurrentGameScreen;
 
+    private StageHUD hud;
     private Stage ingame;
     private Stage gameover;
     public World world;
 
     public GameScreen(){
         ingame = new Stage();
+        hud = new StageHUD();
         Box2D.init();
 
         this.world = new World(new Vector2(98f, 0), true);
@@ -56,10 +59,12 @@ public class GameScreen implements Screen {
                             fixB.getUserData() instanceof Player) {
                         if (fixA.getUserData() instanceof Enemy) {
                             ((Player) fixB.getUserData()).remove();
+                            fixB.setUserData("isDead");
                             getCurrentGameScreen.gameOver();
 
                         } else if (fixB.getUserData() instanceof Enemy) {
                             ((Player) fixA.getUserData()).remove();
+                            fixA.setUserData("isDead");
                             getCurrentGameScreen.gameOver();
                         }
                     } else if(fixA.getUserData() instanceof Grade  ||
@@ -75,10 +80,13 @@ public class GameScreen implements Screen {
                             ((Enemy)fixA.getUserData()).getHitFromHit(((Grade)fixB.getUserData()).getValue());
                             ((Grade)fixB.getUserData()).remove();
                             fixB.setUserData("isDead");
+                            hud.addScore(2);
+
                         }else if(fixB.getUserData() instanceof Enemy){
                             ((Grade)fixA.getUserData()).remove();
                             ((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue());
                             fixA.setUserData("isDead");
+                            hud.addScore(2);
                         }
                     }
                 }
@@ -177,10 +185,13 @@ public class GameScreen implements Screen {
 
         hitbox.dispose();
         ingame.addActor(actor);
+        actor.loaded();
     }
 
     Table table;
     public void gameOver(){
+        hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
+        hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten, ach warte du bist ja schon tot :D", "lord");
         gameover = new Stage();
 
         table = new Table();
@@ -276,6 +287,9 @@ public class GameScreen implements Screen {
 
         ingame.act(Gdx.graphics.getDeltaTime());
         ingame.draw();
+
+        hud.act(Gdx.graphics.getDeltaTime());
+        hud.draw();
 
         if(gameover != null){
             gameover.act(Gdx.graphics.getDeltaTime());

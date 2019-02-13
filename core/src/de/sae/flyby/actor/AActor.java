@@ -39,6 +39,16 @@ public class AActor extends Actor {
         this.body.setLinearVelocity(x * 10f , y * 10f);
     }
 
+    public void setMass(float mass){
+        MassData enmass = new MassData();
+
+        this.body.setMassData(enmass);
+    }
+
+    public void loaded(){
+
+    }
+
     public void update(float deltaTime){
     }
 
