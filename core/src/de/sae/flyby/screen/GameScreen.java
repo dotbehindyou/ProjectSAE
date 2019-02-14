@@ -2,6 +2,7 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Vector2;
@@ -17,17 +18,24 @@ import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.*;
 import de.sae.flyby.stage.StageHUD;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 //TODO: Pause menu, background music
 public class GameScreen implements Screen {
     public static GameScreen getCurrentGameScreen;
 
+
+    private Sound ingameSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/ingame.mp3"));
+    private Sound bossSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/boss.mp3"));
+
+    private long ingameSoundId;
+    private long bossSoundId = -1;
+
     private StageHUD hud;
     private Stage ingame;
     private Stage gameover;
+    private int nextBossSpawn = 100;
+
     public World world;
 
     public GameScreen(){
@@ -77,16 +85,14 @@ public class GameScreen implements Screen {
                             ((Grade)fixA.getUserData()).remove();
                             fixA.setUserData("isDead");
                         }else if(fixA.getUserData() instanceof Enemy){
-                            ((Enemy)fixA.getUserData()).getHitFromHit(((Grade)fixB.getUserData()).getValue());
+                            hud.addScore(((Enemy)fixA.getUserData()).getHitFromHit(((Grade)fixB.getUserData()).getValue()));
                             ((Grade)fixB.getUserData()).remove();
                             fixB.setUserData("isDead");
-                            hud.addScore(2);
 
                         }else if(fixB.getUserData() instanceof Enemy){
                             ((Grade)fixA.getUserData()).remove();
-                            ((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue());
+                            hud.addScore(((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue()));
                             fixA.setUserData("isDead");
-                            hud.addScore(2);
                         }
                     }
                 }
@@ -107,7 +113,6 @@ public class GameScreen implements Screen {
 
         getCurrentGameScreen = this;
     }
-
 
     public void clearDeadBodys() {
         Array<Body> iter = new Array<Body>();
@@ -170,9 +175,10 @@ public class GameScreen implements Screen {
         bodyDef.position.set(new Vector2(actor.getX(), actor.getY()));
 
         Body body = world.createBody(bodyDef);
-        
-        PolygonShape hitbox = new PolygonShape();
-        hitbox.setAsBox(actor.getWidth() / 2, actor.getHeight() / 2, new Vector2(actor.getWidth() / 2, actor.getHeight() / 2), 0);
+
+        CircleShape hitbox = new CircleShape();
+        hitbox.setPosition(new Vector2(actor.getWidth() / 2, actor.getHeight() / 2));
+        hitbox.setRadius(actor.getWidth() / 2.5f);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = hitbox;
@@ -190,6 +196,7 @@ public class GameScreen implements Screen {
 
     Table table;
     public void gameOver(){
+        ingameSound.stop(ingameSoundId);
         hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
         hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten, ach warte du bist ja schon tot :D", "lord");
         gameover = new Stage();
@@ -257,21 +264,38 @@ public class GameScreen implements Screen {
     long lastTime = System.currentTimeMillis();
     long elapsedTime = 0L;
     int spawnTicks = 500;
+    boolean isBossLife;
     public void spawnEnemy(){
-        if(lastTime + (spawnTicks) < elapsedTime) {
-            lastTime = elapsedTime;
+        if(nextBossSpawn - hud.getScorePoints() > 1 && isBossLife){
+            if(lastTime + (spawnTicks) < elapsedTime) {
+                if(bossSoundId != -1){
+                    bossSound.stop(bossSoundId);
+                    bossSoundId = -1;
+                }
 
-            final int MARGIN_TOP = 10;
-            final int MARGIN_BOTTOM = 10;
+                lastTime = elapsedTime;
 
-            int spawnPos = new Random().nextInt((Gdx.graphics.getHeight() - MARGIN_TOP) + 1) + MARGIN_BOTTOM;
-            addActor(new Enemy(0, spawnPos));
+                final int MARGIN_TOP = 10;
+                final int MARGIN_BOTTOM = 10;
+
+                int spawnPos = new Random().nextInt((Gdx.graphics.getHeight() - MARGIN_TOP) + 1) + MARGIN_BOTTOM;
+                addActor(new Enemy(0, spawnPos));
+            }
+            elapsedTime = System.currentTimeMillis();
+        }else{
+            bossSoundId = bossSound.loop();
+            nextBossSpawn = 500;
+            isBossLife = true;
+            hud.setTextbox("OH NEIN, der BOSS hat dich bemerkt. Bitte flieh sollange du noch kannst.", "talker");
+            hud.setTextbox("NEIN! Wenn du gehst werde ich dich toeten lassen!", "lord");
+            hud.setTextbox("HAHAHA! Ihr könnt nicht fliehen!", "boss");
         }
-        elapsedTime = System.currentTimeMillis();
     }
 
     @Override
     public void show(){
+        ingameSoundId = ingameSound.loop(0.2f);
+
         this.generateBorder();
 
         ingame.addActor(new Background());

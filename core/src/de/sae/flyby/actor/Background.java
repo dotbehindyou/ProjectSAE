@@ -23,8 +23,8 @@ public class Background extends Actor {
 
     @Override
     public void draw(Batch batch, float alpha){
-        batch.draw(this.background1, this.xCoordBg1, 0, this.background1.getWidth(), this.background1.getHeight());
-        batch.draw(this.background2, this.xCoordBg2, 0, this.background2.getWidth(), this.background2.getHeight());
+        batch.draw(this.background1, this.xCoordBg1, 0, background1.getWidth(), Gdx.graphics.getHeight());
+        batch.draw(this.background2, this.xCoordBg2, 0, background2.getWidth(), Gdx.graphics.getHeight());
     }
 
     @Override

@@ -22,7 +22,7 @@ public class StageHUD extends Stage {
         scoreStyle.font = MainGame.getFont(20);
         scoreStyle.fontColor = Color.BLACK;
 
-        score = new Label("0", scoreStyle);
+        score = new Label("Punkte: 0", scoreStyle);
 
         score.setPosition(Gdx.graphics.getWidth() - 120f, Gdx.graphics.getHeight() - 30f);
 
@@ -30,6 +30,11 @@ public class StageHUD extends Stage {
 
         setTextbox("Willkommen bei FlyBy! Dieses Spiel rasiert deinen Verstand! Ich bin Noll Exception und begleite dich bei deinem Abenteuer.", "talker");
         setTextbox("Hoehr nicht auf diesen Idioten! Ich bin Lord Chungus. Und Befehle dir den Boss zu besiegen.", "lord");
+    }
+
+    public int getScorePoints()
+    {
+        return this.scorePoints;
     }
 
     public void addScore(int addPoints){
@@ -48,12 +53,16 @@ public class StageHUD extends Stage {
 
     TextureRegion talker = new TextureRegion(MainGame.getTexture(), 128, 0, 64, 64);
     TextureRegion big = new TextureRegion(MainGame.getTexture(), 0, 0, 128, 128);
+    TextureRegion boss = new TextureRegion(MainGame.getTexture(), 320, 128, 64, 64);
 
     List<Textbox> msgs = new ArrayList<Textbox>();
     public void setTextbox(String msg, String icon){
         TextureRegion tal;
         if(icon.toLowerCase() == "lord"){
             tal = big;
+        }
+        else if(icon.toLowerCase() == "boss"){
+            tal = boss;
         }
         else {
             tal = talker;

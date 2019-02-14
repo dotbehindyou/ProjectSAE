@@ -1,6 +1,7 @@
 package de.sae.flyby.actor;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Textbox extends Actor {
+    private Sound sound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/text.mp3"));
     private Label text;
     private TextureRegion icon;
     private TextureRegion[] bg = new TextureRegion[3];
@@ -30,7 +32,7 @@ public class Textbox extends Actor {
 
         Label.LabelStyle textStyle = new Label.LabelStyle();
         textStyle.font = MainGame.getFont(20);
-        textStyle.fontColor = Color.BLACK;
+        textStyle.fontColor = Color.WHITE;
 
         mainText = new ArrayList<String>();
         for(String item : messsage.split("!.?")){
@@ -59,13 +61,18 @@ public class Textbox extends Actor {
     long lastTime = System.currentTimeMillis();
     long elapsedTime = 0L;
     boolean isFin = false;
+    long soundId = -1;
     @Override
     public void act(float deltaTime){
+        if(soundId == -1){
+            soundId = sound.loop();
+        }
         if(currentText.length() < currentMainText.length()) {
-            if (lastTime + (100) < elapsedTime) {
+            if (lastTime + (50) < elapsedTime) {
                 lastTime = elapsedTime;
                 currentText = currentMainText.substring(0, currentText.length() + 1);
                 text.setText(currentText + "...");
+
             }
         }
         else if((index + 1) == mainText.size()){
@@ -74,6 +81,7 @@ public class Textbox extends Actor {
                 this.remove();
                 this.isFin = true;
             }
+            sound.stop(soundId);
         }
         else{
             ++index;

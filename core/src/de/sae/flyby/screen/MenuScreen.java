@@ -2,6 +2,7 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -19,7 +20,8 @@ public class MenuScreen implements Screen {
     private Stage main;
     //private Stage options;
     //private Stage credits;
-
+    private Sound menuSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/menu.mp3"));
+    private long menuSoundId = -1;
     private Table table;
 
     public MenuScreen(){
@@ -28,8 +30,10 @@ public class MenuScreen implements Screen {
         table = new Table();
     }
 
+
     @Override
     public void show(){
+        menuSoundId = menuSound.loop();
         table.setFillParent(true);
         table.setDebug(false);
 
@@ -43,6 +47,7 @@ public class MenuScreen implements Screen {
         this.createButton("Start",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                menuSound.stop(menuSoundId);
                 SAEGame.currentGame.setScreen(new GameScreen());
             }
         });
