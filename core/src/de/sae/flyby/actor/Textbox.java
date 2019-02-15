@@ -1,19 +1,18 @@
 package de.sae.flyby.actor;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import de.sae.flyby.MainGame;
+import de.sae.flyby.objects.Sound;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Textbox extends Actor {
-    private Sound sound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/text.mp3"));
     private Label text;
     private TextureRegion icon;
     private TextureRegion[] bg = new TextureRegion[3];
@@ -65,7 +64,7 @@ public class Textbox extends Actor {
     @Override
     public void act(float deltaTime){
         if(soundId == -1){
-            soundId = sound.loop();
+            Sound.playSound("text");
         }
         if(currentText.length() < currentMainText.length()) {
             if (lastTime + (50) < elapsedTime) {
@@ -81,12 +80,15 @@ public class Textbox extends Actor {
                 this.remove();
                 this.isFin = true;
             }
-            sound.stop(soundId);
+            Sound.stopSound("text");
         }
         else{
-            ++index;
-            currentMainText = mainText.get(index);
-            currentText = "";
+            if (lastTime + (1000) < elapsedTime) {
+                ++index;
+                currentMainText = mainText.get(index);
+                currentText = "";
+            }
+            Sound.stopSound("text");
         }
         elapsedTime = System.currentTimeMillis();
     }

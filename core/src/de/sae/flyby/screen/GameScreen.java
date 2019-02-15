@@ -2,7 +2,6 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Vector2;
@@ -16,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.*;
+import de.sae.flyby.objects.Sound;
 import de.sae.flyby.stage.StageHUD;
 
 import java.util.Random;
@@ -24,12 +24,9 @@ import java.util.Random;
 public class GameScreen implements Screen {
     public static GameScreen getCurrentGameScreen;
 
-
-    private Sound ingameSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/ingame.mp3"));
-    private Sound bossSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/boss.mp3"));
-
     private long ingameSoundId;
     private long bossSoundId = -1;
+    private long gameoverSoundId = -1;
 
     private StageHUD hud;
     private Stage ingame;
@@ -183,6 +180,12 @@ public class GameScreen implements Screen {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = hitbox;
         fixtureDef.density = 1f;
+        if(actor instanceof Enemy || actor instanceof Boss){
+            fixtureDef.filter.categoryBits = AActor.CATEGORY_MONSTER;
+        }
+        else if(actor instanceof Player || actor instanceof Grade){
+            fixtureDef.filter.categoryBits = AActor.CATEGORY_PLAYER;
+        }
 
         body.createFixture(hitbox, 0.0f);
 
@@ -196,9 +199,10 @@ public class GameScreen implements Screen {
 
     Table table;
     public void gameOver(){
-        ingameSound.stop(ingameSoundId);
+        Sound.resetSounds();
+        Sound.playSound("gameover");
         hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
-        hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten, ach warte du bist ja schon tot :D", "lord");
+        hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten! Ach warte, du bist ja schon tot :D", "lord");
         gameover = new Stage();
 
         table = new Table();
@@ -213,6 +217,7 @@ public class GameScreen implements Screen {
         this.createButton("Neustart",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Sound.stopSound("gameover");
                 SAEGame.currentGame.setScreen(new GameScreen());
             }
         });
@@ -226,6 +231,7 @@ public class GameScreen implements Screen {
         this.createButton("Schliessen",new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Sound.stopSound("gameover");
                 Gdx.app.exit();
             }
         });
@@ -265,11 +271,12 @@ public class GameScreen implements Screen {
     long elapsedTime = 0L;
     int spawnTicks = 500;
     boolean isBossLife;
+    Boss currentBoss;
     public void spawnEnemy(){
-        if(nextBossSpawn - hud.getScorePoints() > 1 && isBossLife){
+        if(nextBossSpawn - hud.getScorePoints() > 1 && !isBossLife){
             if(lastTime + (spawnTicks) < elapsedTime) {
                 if(bossSoundId != -1){
-                    bossSound.stop(bossSoundId);
+                    Sound.stopSound("boss");
                     bossSoundId = -1;
                 }
 
@@ -283,18 +290,25 @@ public class GameScreen implements Screen {
             }
             elapsedTime = System.currentTimeMillis();
         }else{
-            bossSoundId = bossSound.loop();
-            nextBossSpawn = 500;
-            isBossLife = true;
-            hud.setTextbox("OH NEIN, der BOSS hat dich bemerkt. Bitte flieh sollange du noch kannst.", "talker");
-            hud.setTextbox("NEIN! Wenn du gehst werde ich dich toeten lassen!", "lord");
-            hud.setTextbox("HAHAHA! Ihr könnt nicht fliehen!", "boss");
+            if(!isBossLife){
+                currentBoss = new Boss();
+                addActor(currentBoss);
+                Sound.stopSound("ingame");
+                Sound.playSound("boss");
+                nextBossSpawn = 500;
+                isBossLife = true;
+                hud.setTextbox("OH NEIN, der BOSS hat dich bemerkt. Bitte flieh sollange du noch kannst.", "talker");
+                hud.setTextbox("NEIN! Wenn du gehst werde ich dich toeten lassen!", "lord");
+                hud.setTextbox("HAHAHA! Ihr könnt nicht fliehen!", "boss");
+            }
+            isBossLife = currentBoss.getIsAlive();
         }
     }
 
     @Override
     public void show(){
-        ingameSoundId = ingameSound.loop(0.2f);
+        Sound.resetSounds();
+        Sound.playSound("ingame");
 
         this.generateBorder();
 

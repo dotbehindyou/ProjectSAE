@@ -8,6 +8,10 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class AActor extends Actor {
+    public final static short CATEGORY_PLAYER = 0x0001;
+    public final static short CATEGORY_MONSTER = 0x0002;
+    public final static short CATEGORY_SCENERY = 0x0004;
+
     final float PIXELS_TO_METERS = 100f;
 
     Matrix4 debugMatrix;
