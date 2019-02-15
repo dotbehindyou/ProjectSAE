@@ -7,64 +7,79 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
+/**
+ *  Hauptklasse für Player, Enemy und Boss
+ */
 public class AActor extends Actor {
-    public final static short CATEGORY_PLAYER = 0x0001;
-    public final static short CATEGORY_MONSTER = 0x0002;
-    public final static short CATEGORY_SCENERY = 0x0004;
+    protected TextureRegion texture;    //Aktuelle Textureregion
+    protected float rotation;           //Aktuelle Rotation
 
-    final float PIXELS_TO_METERS = 100f;
+    protected Body body;                //Aktuelle Hitbox
 
-    Matrix4 debugMatrix;
-
-    protected TextureRegion texture;
-    protected float rotation;
-
-    protected Body body;
-
+    /**
+     * @param x Position X
+     * @param y Position Y
+     * @param w Breite vom Objekt
+     * @param h Höhe vom Objekt
+     */
     public AActor(float x, float y, float w, float h) {
-        this.texture = new TextureRegion();
+        this.texture = new TextureRegion(); //Initialisiere einen leeren Textureregion (Die "echte" Texture wird im Lauf initialisiert.)
 
         this.setBounds(x, y, w, h);
     }
 
-    public void setTexture(Texture texture){
-        this.texture = new TextureRegion( texture);
-    }
-
+    /**
+     * Hier mit wird die Texture gesetzt
+     * @param texture neue TextureRegion
+     */
     public void setTexture(TextureRegion texture){
         this.texture = texture;
     }
 
+    /**
+     * Hier wird die Hitbox von dem Objekt World gesetzt
+     * @param body aktuelles Body / Hitbox
+     */
     public void setBody(Body body){
         this.body = body;
     }
 
+    /**
+     * Den Actor in Bewegung setzen
+     * @param x X Einwirkung
+     * @param y Y Einwirkung
+     */
     public void move(float x, float y){
         this.body.setLinearVelocity(x * 10f , y * 10f);
-    }
-
-    public void setMass(float mass){
-        MassData enmass = new MassData();
-
-        this.body.setMassData(enmass);
-    }
-
-    public void loaded(){
-
     }
 
     public void update(float deltaTime){
     }
 
+    /**
+     * Diese Mehtode wird jedes mal von der Engine getriggert beim Rendern.
+     * Hier wird alles was das Objekt braucht gezeichnet.
+     * @param batch Batch Klasse (Sprite Buffer)
+     * @param alpha Alpha Value vom Actor
+     */
     @Override
     public void draw(Batch batch, float alpha){
+        //Texture zeichnen mit Position und Größe
         batch.draw(texture, this.body.getPosition().x, this.body.getPosition().y, 0, 0, getWidth(), getHeight(), 1, 1, getRotation());
     }
 
+    /**
+     * Diese Methode wird jedes mal von der Engine getriggert vor dem Rendern
+     * Hier werden alle Aktionen des Objektes bearbeitet
+     * @param deltaTime Wie viel Zeit ist beim letzten Rendern vergangen (Zum ausgleichen)
+     */
     @Override
     public void act(float deltaTime){
+        //Methode Update triggern (Wird nur für Unterklassen verwendet)
         this.update(deltaTime);
+        //Die aktuelle Rotation des Objektes setzten
         this.setRotation(rotation);
+        //Position des Objekt mit der Hitbox gleichsetzen
         this.setPosition(this.body.getPosition().x, this.body.getPosition().y);
     }
 }

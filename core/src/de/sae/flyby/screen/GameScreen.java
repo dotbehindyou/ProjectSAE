@@ -15,113 +15,89 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.*;
+import de.sae.flyby.listener.HitListener;
 import de.sae.flyby.objects.Sound;
+import de.sae.flyby.stage.StageGameover;
 import de.sae.flyby.stage.StageHUD;
 
 import java.util.Random;
 
-//TODO: Pause menu, background music
+/**
+ * Hauptspiel Screen
+ */
 public class GameScreen implements Screen {
-    public static GameScreen getCurrentGameScreen;
+    public static GameScreen getCurrentGameScreen; //Aktueller GameScreen
 
-    private long ingameSoundId;
-    private long bossSoundId = -1;
-    private long gameoverSoundId = -1;
+    private StageHUD hud;               //HUD (Punkte, Textbox, etc)
+    private Stage ingame;               //Ingame (Spieler, Hintergrund, Enemys, Noten, etc)
+    private StageGameover gameover;     //GameOver (Neustart, Beenden, etc)
+    private int nextBossSpawn = 100;    //Ab welcher Punktzahl kommt der Gegner ?
+    private long currentTimeMillis;     //Aktuelle Zeit in Millisekunden
+    private long spawnTimer = 0L;       //Wann wurde zuletzt ein Enemy gespawnt
+    private int spawnTicks = 500;       //Nach wieviel Millisekunden soll der nächste Gegner spawnen
+    private boolean isBossLife;         //Ist der Endboss am leben
+    private Boss currentBoss;           //Aktueller Endboss
 
-    private StageHUD hud;
-    private Stage ingame;
-    private Stage gameover;
-    private int nextBossSpawn = 100;
+    public World world;     //Hitbox Welt
 
-    public World world;
+    /**
+     * @return HUD vom GameScreen zurück geben
+     */
+    public StageHUD getHUD(){
+        return hud;
+    }
 
     public GameScreen(){
-        ingame = new Stage();
-        hud = new StageHUD();
-        Box2D.init();
+        ingame = new Stage();       //Ingame wird initialisiert
+        hud = new StageHUD(false);       //HUD wird initialisiert
 
-        this.world = new World(new Vector2(98f, 0), true);
+        getCurrentGameScreen = this;    //Aktueller Spiel Screen wird gesetzt
 
-        this.world.setContactListener(new ContactListener() {
-            @Override
-            public void beginContact(Contact contact) {
-                Body fixA = contact.getFixtureA().getBody();
-                Body fixB = contact.getFixtureB().getBody();
-
-                if (fixA != null && fixB != null &&
-                        fixA.getUserData() != null && fixB.getUserData() != null)
-                {
-                    if (fixA.getUserData().equals("right") ||
-                            fixB.getUserData().equals("right")) {
-                        if (fixA.getUserData() instanceof Enemy) {
-                            ((Enemy) fixA.getUserData()).remove();
-                            fixA.setUserData("isDead");
-                        } else if (fixB.getUserData() instanceof Enemy) {
-                            ((Enemy) fixB.getUserData()).remove();
-                            fixB.setUserData("isDead");
-                        }
-                    } else if (fixA.getUserData() instanceof Player ||
-                            fixB.getUserData() instanceof Player) {
-                        if (fixA.getUserData() instanceof Enemy) {
-                            ((Player) fixB.getUserData()).remove();
-                            fixB.setUserData("isDead");
-                            getCurrentGameScreen.gameOver();
-
-                        } else if (fixB.getUserData() instanceof Enemy) {
-                            ((Player) fixA.getUserData()).remove();
-                            fixA.setUserData("isDead");
-                            getCurrentGameScreen.gameOver();
-                        }
-                    } else if(fixA.getUserData() instanceof Grade  ||
-                                fixB.getUserData() instanceof Grade)
-                    {
-                        if (fixA.getUserData().equals("left")){
-                            ((Grade)fixB.getUserData()).remove();
-                            fixB.setUserData("isDead");
-                        } else if(fixB.getUserData().equals("left")){
-                            ((Grade)fixA.getUserData()).remove();
-                            fixA.setUserData("isDead");
-                        }else if(fixA.getUserData() instanceof Enemy){
-                            hud.addScore(((Enemy)fixA.getUserData()).getHitFromHit(((Grade)fixB.getUserData()).getValue()));
-                            ((Grade)fixB.getUserData()).remove();
-                            fixB.setUserData("isDead");
-
-                        }else if(fixB.getUserData() instanceof Enemy){
-                            ((Grade)fixA.getUserData()).remove();
-                            hud.addScore(((Enemy)fixB.getUserData()).getHitFromHit(((Grade)fixA.getUserData()).getValue()));
-                            fixA.setUserData("isDead");
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void endContact(Contact contact) {
-            }
-
-            @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {
-            }
-
-            @Override
-            public void postSolve(Contact contact, ContactImpulse impulse) {
-            }
-        });
-
-        getCurrentGameScreen = this;
+        loading();
     }
 
-    public void clearDeadBodys() {
-        Array<Body> iter = new Array<Body>();
-        getCurrentGameScreen.world.getBodies(iter);
-        for (Body body : iter ) {
-            if (body != null && body.getUserData() != null && body.getUserData().equals("isDead")) {
-                GameScreen.getCurrentGameScreen.world.destroyBody(body);
-                body.setUserData(null);
-            }
-        }
+    //Spiel im GameOver Modus setzen
+    public void gameOver(){;
+    //Textboxen hinzufügen
+        hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
+        hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten! Ach warte, du bist ja schon tot :D", "lord");
+
+        //"gameover" Stage deklarieren
+        gameover = new StageGameover();
     }
 
+    /**
+     * Hier wird alles geladen
+     */
+    private void loading(){
+        initWorldHitbox(); //Hitbox initialisieren
+
+        Sound.resetSounds(); //Alle Sounds beenden
+        Sound.playSound("ingame"); //Hintergrundmusik für das Spiel abspielen
+
+        this.generateBorder(); //Weltgrenzen setzen
+
+        ingame.addActor(new Background()); //Hintergrund initialisieren und hinzufügen
+        this.addActor(new Player());       //Spieler initialisieren und hinzufügen
+
+        currentTimeMillis = System.currentTimeMillis(); //Aktuelle Zeit setzen
+    }
+
+    /**
+     * Hier wird alles für die Hitbox und Collisionabfragen initialisiert und gesetzt
+     */
+    private void initWorldHitbox(){
+        Box2D.init();   //Box2D Engine initialisieren
+
+        this.world = new World(new Vector2(98f, 0), true); //Welt parameter setzten (Gravitation, etc)
+
+        //Collisionsabfrage hinzufügen
+        this.world.setContactListener(new HitListener());
+    }
+
+    /**
+     * Mit dieser Methode bekommt die Welt ihre "Spielgrenzen"
+     */
     private void generateBorder(){
         BodyDef groundBodyDef = new BodyDef();
 
@@ -166,176 +142,136 @@ public class GameScreen implements Screen {
         groundBox.dispose();
     }
 
+    /**
+     * Hier mit werden neue Actoren hinzugefüt und dem Actor wird eine neue Hitbox zugewiesen
+     * @param actor Welcher Actor soll in die Welt gestzt werden
+     */
     public void addActor(AActor actor){
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(new Vector2(actor.getX(), actor.getY()));
+        //AUFPASSEN BEI DER HITBOX!
+        //ACTOR UND HITBOX SIND ZWEI UNTERSCHIEDLICHE OBJEKTE UND HABEN NUR EINEN THEORETISCHEN ZUSAMMENHANG
+        //SIE WERDEN NUR IN DER KLASSE "AACTOR" ZUSAMMEN BEARBEITET!
 
-        Body body = world.createBody(bodyDef);
+//BEGIN HITBOX_INITALISATION
+        BodyDef bodyDef = new BodyDef();        //Hitbox definitionen
+        bodyDef.type = BodyDef.BodyType.DynamicBody;    //Actor ist dynamisch (Beweglich) in der Welt (sonst Bewegt sich der Actor nicht!)
+        bodyDef.position.set(new Vector2(actor.getX(), actor.getY())); //Hitbox wird beim Spieler gesetzt
 
-        CircleShape hitbox = new CircleShape();
-        hitbox.setPosition(new Vector2(actor.getWidth() / 2, actor.getHeight() / 2));
-        hitbox.setRadius(actor.getWidth() / 2.5f);
+        Body body = world.createBody(bodyDef); //Hitbox Welt neue Hitbox initialisieren
 
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = hitbox;
+        CircleShape hitbox = new CircleShape(); //Hitbox Form (Kreis)
+        hitbox.setPosition(new Vector2(actor.getWidth() / 2, actor.getHeight() / 2)); //Hitbox relativ zum Body setzen
+        hitbox.setRadius(actor.getWidth() / 2.5f); //Radius des Kreises setzen
+
+        FixtureDef fixtureDef = new FixtureDef(); //FixtureDef deklarieren und initalisieren
+        fixtureDef.shape = hitbox; //Form übergeben
         fixtureDef.density = 1f;
-        if(actor instanceof Enemy || actor instanceof Boss){
-            fixtureDef.filter.categoryBits = AActor.CATEGORY_MONSTER;
+
+        body.createFixture(hitbox, 0.0f); //Body Fixture initialisieren
+
+        body.setUserData(actor); //Actor als UserData - wird bei der Kolisionsabfrage "HitListener" gebraucht
+        actor.setBody(body); //AActor klasse Hitbox überliefern
+
+        hitbox.dispose(); //Nichtmehr verwendete Form "löschen" (Beinträchtigt die Hitbox nicht!)
+//END HITBOX_INITALISATION
+
+        ingame.addActor(actor); //Actor wird dem Spiel hinzugefügt
+    }
+
+    /**
+     * Hiermit werden alle "tot" hitboxen gelöscht
+     * Wird bei jedem Frame ausgeführt
+     */
+    private void clearDeadBodys() {
+        Array<Body> iter = new Array<Body>(); //Hilfsvariable
+        world.getBodies(iter); //Alle Hitboxen von der aktuellen Welt bekommen
+        for (Body body : iter ) { //Foreach (jedes einzelne Objekt bearbeiten)
+            if (body != null && body.getUserData() != null && body.getUserData().equals("isDead"))
+            { //Ist das Objekt nicht null und UserData, und Body ist "tot"
+                GameScreen.getCurrentGameScreen.world.destroyBody(body); //Löschen
+                body.setUserData(null); //Userdata null setzen
+            }
         }
-        else if(actor instanceof Player || actor instanceof Grade){
-            fixtureDef.filter.categoryBits = AActor.CATEGORY_PLAYER;
-        }
-
-        body.createFixture(hitbox, 0.0f);
-
-        body.setUserData((AActor)actor);
-        actor.setBody(body);
-
-        hitbox.dispose();
-        ingame.addActor(actor);
-        actor.loaded();
     }
 
-    Table table;
-    public void gameOver(){
-        Sound.resetSounds();
-        Sound.playSound("gameover");
-        hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
-        hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten! Ach warte, du bist ja schon tot :D", "lord");
-        gameover = new Stage();
+    /**
+     * Diese Methode lässt Gegner spawnen
+     */
+    private void spawnEnemy(){
+        if(nextBossSpawn - hud.getScorePoints() > 1 && !isBossLife)
+        { //Sind die Punkte NICHT ausreichend um einen Endboss spawnen zu lassen und ist der Endboss NICHT am leben
+            if(spawnTimer + (spawnTicks) < currentTimeMillis)
+            { //Sind 500ms vergangen seit dem letzten Spawn
+                Sound.stopSound("boss"); //Endbossmusik Stoppen
 
-        table = new Table();
+                spawnTimer = currentTimeMillis; //Letzter Spawn Zeit setzen
 
-        table.setFillParent(true);
-        table.setDebug(false);
+                final int MARGIN_TOP = 10; //Wie viel Pixel abstand zu oben
+                final int MARGIN_BOTTOM = 10; //Wie viel Pixel abstand zu unten
 
-        gameover.addActor(table);
-
-        this.createTitle("Game Over");
-
-        this.createButton("Neustart",new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Sound.stopSound("gameover");
-                SAEGame.currentGame.setScreen(new GameScreen());
-            }
-        });
-        //TODO: Option Stage
-        /*this.createButton("Options",new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
-            }
-        });*/
-        this.createButton("Schliessen",new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Sound.stopSound("gameover");
-                Gdx.app.exit();
-            }
-        });
-    }
-
-    private void createTitle(String text){
-        TextField.TextFieldStyle titleStyle = new TextField.TextFieldStyle();
-        titleStyle.font = SAEGame.getFont(45);
-        titleStyle.fontColor = Color.OLIVE;
-
-        TextField titleGame = new TextField(text, titleStyle);
-        titleGame.setDisabled(true);
-
-        table.add(titleGame).size(400, 200);
-        table.row().pad(10, 0, 10, 0);
-    }
-
-    private void createButton(String text, ChangeListener listener){
-        TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
-
-        BitmapFont font = SAEGame.getFont(25);
-        btnStyle.font = font;
-
-        btnStyle.downFontColor = Color.RED;
-        btnStyle.overFontColor = Color.GRAY;
-        btnStyle.fontColor = Color.BLACK;
-
-        TextButton btn = new TextButton(text, btnStyle);
-
-        btn.addListener(listener);
-
-        table.add(btn).fillX().uniformX();
-        table.row().pad(10, 0, 10, 0);
-    }
-
-    long lastTime = System.currentTimeMillis();
-    long elapsedTime = 0L;
-    int spawnTicks = 500;
-    boolean isBossLife;
-    Boss currentBoss;
-    public void spawnEnemy(){
-        if(nextBossSpawn - hud.getScorePoints() > 1 && !isBossLife){
-            if(lastTime + (spawnTicks) < elapsedTime) {
-                if(bossSoundId != -1){
-                    Sound.stopSound("boss");
-                    bossSoundId = -1;
-                }
-
-                lastTime = elapsedTime;
-
-                final int MARGIN_TOP = 10;
-                final int MARGIN_BOTTOM = 10;
-
+                //Gegner Zufällige Y Position
                 int spawnPos = new Random().nextInt((Gdx.graphics.getHeight() - MARGIN_TOP) + 1) + MARGIN_BOTTOM;
+
+                //Gegner deklarieren und hinzufügen
                 addActor(new Enemy(0, spawnPos));
             }
-            elapsedTime = System.currentTimeMillis();
         }else{
-            if(!isBossLife){
-                currentBoss = new Boss();
-                addActor(currentBoss);
-                Sound.stopSound("ingame");
-                Sound.playSound("boss");
-                nextBossSpawn = 500;
-                isBossLife = true;
+            if(!isBossLife)
+            {//Ist der Endboss NICHT am leben
+                currentBoss = new Boss(); //Neuen Boss initialisieren
+                addActor(currentBoss); //Boss hinzufügen
+                Sound.stopSound("ingame"); //Normal Musik stoppen
+                Sound.playSound("boss"); //Boss Musik abspielen lassen
+                nextBossSpawn = 500; //Nexte Boss Spawn Punktzahl setzen
+                isBossLife = true; //Boss als Leben setzen
+                //Textboxen für den Boss setzen
                 hud.setTextbox("OH NEIN, der BOSS hat dich bemerkt. Bitte flieh sollange du noch kannst.", "talker");
                 hud.setTextbox("NEIN! Wenn du gehst werde ich dich toeten lassen!", "lord");
                 hud.setTextbox("HAHAHA! Ihr könnt nicht fliehen!", "boss");
             }
-            isBossLife = currentBoss.getIsAlive();
+            isBossLife = currentBoss.getIsAlive(); //Abgleichen ob der Endboss noch am Leben ist
         }
+    }
+
+    /**
+     * Diese Methode wird automatisch von der Engine aufgerufen
+     * @param delta Wie viele Millisekunden sind seit dem letzen Rendern / Zeichnen vergangen
+     */
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1); //Hintergrund mit Schwarz füllen
+        Gdx.gl.glClear(Gdx.gl20.GL_COLOR_BUFFER_BIT); //OpenGL COLOR BUFFER setzen
+
+        //Hitbox-Welt berechnen
+        world.step(Gdx.graphics.getDeltaTime(), 6, 2);
+
+        //Ingame berechnen aufrufen
+        ingame.act(Gdx.graphics.getDeltaTime());
+        //Ingame zeichnen
+        ingame.draw();
+
+        //HUD berechnen aufrufen
+        hud.act(Gdx.graphics.getDeltaTime());
+        //HUD zeichnen
+        hud.draw();
+
+        if(gameover != null)
+        {//Wenn Gameover NICHT null ist
+            //Gameover berechnen
+            gameover.act(Gdx.graphics.getDeltaTime());
+            //Gameover zeichnen
+            gameover.draw();
+        }
+
+        //Gegner spawnen lassen
+        spawnEnemy();
+        //Alle "toten" Hitboxen löschen
+        clearDeadBodys();
+        //Jetztige Zeit setzen
+        currentTimeMillis = System.currentTimeMillis();
     }
 
     @Override
     public void show(){
-        Sound.resetSounds();
-        Sound.playSound("ingame");
-
-        this.generateBorder();
-
-        ingame.addActor(new Background());
-        this.addActor(new Player());
-    }
-
-    @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1);
-        Gdx.gl.glClear(Gdx.gl20.GL_COLOR_BUFFER_BIT);
-
-        world.step(Gdx.graphics.getDeltaTime(), 6, 2);
-
-        ingame.act(Gdx.graphics.getDeltaTime());
-        ingame.draw();
-
-        hud.act(Gdx.graphics.getDeltaTime());
-        hud.draw();
-
-        if(gameover != null){
-            gameover.act(Gdx.graphics.getDeltaTime());
-            gameover.draw();
-        }
-
-        spawnEnemy();
-        clearDeadBodys();
     }
 
     @Override

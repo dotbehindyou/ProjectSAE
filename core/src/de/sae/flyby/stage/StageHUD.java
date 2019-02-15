@@ -11,77 +11,107 @@ import de.sae.flyby.actor.Textbox;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Oberflächen Klasse für Punkte, Textboxen, etc
+ */
 public class StageHUD extends Stage {
-    int scorePoints = 0;
+    //Texturen für die Sprecher
+    private final static TextureRegion talker = new TextureRegion(MainGame.getTexture(), 128, 0, 64, 64);
+    private final static TextureRegion big = new TextureRegion(MainGame.getTexture(), 0, 0, 128, 128);
+    private final static TextureRegion boss = new TextureRegion(MainGame.getTexture(), 320, 128, 64, 64);
 
-    Label score;
-    Textbox box ;
+    private int scorePoints = 0; //Aktuelle Punktzahl
+    private Label score;         //Label für die Punktzahl, was gezeichnet wird
+    private Textbox box ;        //Textbox
+    private List<Textbox> msgs = new ArrayList<Textbox>(); //Aktuell nachzuzeichende Textboxen
 
-    public StageHUD(){
-        Label.LabelStyle scoreStyle = new Label.LabelStyle();
-        scoreStyle.font = MainGame.getFont(20);
-        scoreStyle.fontColor = Color.BLACK;
-
-        score = new Label("Punkte: 0", scoreStyle);
-
-        score.setPosition(Gdx.graphics.getWidth() - 120f, Gdx.graphics.getHeight() - 30f);
-
-        this.addActor(score);
-
-        setTextbox("Willkommen bei FlyBy! Dieses Spiel rasiert deinen Verstand! Ich bin Noll Exception und begleite dich bei deinem Abenteuer.", "talker");
-        setTextbox("Hoehr nicht auf diesen Idioten! Ich bin Lord Chungus. Und Befehle dir den Boss zu besiegen.", "lord");
-    }
-
+    /**
+     * @return Aktuelle Punktzahl
+     */
     public int getScorePoints()
     {
         return this.scorePoints;
     }
 
+    public StageHUD(Boolean isRestart){
+        Label.LabelStyle scoreStyle = new Label.LabelStyle(); //Label aussehen
+        scoreStyle.font = MainGame.getFont(20); //Font setzen
+        scoreStyle.fontColor = Color.BLACK; //Text color
+
+        score = new Label("Punkte: 0", scoreStyle); //"score" initialisieren
+
+        //Position des Scores setzen
+        score.setPosition(Gdx.graphics.getWidth() - 120f, Gdx.graphics.getHeight() - 30f);
+
+        this.addActor(score); //Score als Actor hinzufügen
+
+        if(!isRestart)
+        {//Wurde das Spiel NICHT Neugestartet
+            //Willkommens Nachrichten
+            setTextbox("Willkommen bei FlyBy! Dieses Spiel rasiert deinen Verstand! Ich bin Noll Exception und begleite dich bei deinem Abenteuer.", "talker");
+            setTextbox("Hoehr nicht auf diesen Idioten! Ich bin Lord Chungus. Und Befehle dir den Boss zu besiegen.", "lord");
+        }
+    }
+
+
+    /**
+     * Hiermit werden Punkte hinzugefügt für den aktuellen Punktestand
+     * @param addPoints Punkte die dazu kommen
+     */
     public void addScore(int addPoints){
         scorePoints += addPoints;
 
         score.setText("Punkte: " + scorePoints);
     }
 
-    @Override
-    public void act(float deltaTime){
-        nextTextbox();
-
-        score.act(deltaTime);
-        box.act(deltaTime);
-    }
-
-    TextureRegion talker = new TextureRegion(MainGame.getTexture(), 128, 0, 64, 64);
-    TextureRegion big = new TextureRegion(MainGame.getTexture(), 0, 0, 128, 128);
-    TextureRegion boss = new TextureRegion(MainGame.getTexture(), 320, 128, 64, 64);
-
-    List<Textbox> msgs = new ArrayList<Textbox>();
+    /**
+     * @param msg Die Nachricht was geschrieben werden soll
+     * @param icon Welcher Sprecher soll angezeigt werden (talker, boss, lord)
+     */
     public void setTextbox(String msg, String icon){
-        TextureRegion tal;
-        if(icon.toLowerCase() == "lord"){
+        TextureRegion tal; //Hilfvariable für den Sprecher
+        if(icon.toLowerCase() == "lord")
+        { //BigChungus
             tal = big;
         }
-        else if(icon.toLowerCase() == "boss"){
+        else if(icon.toLowerCase() == "boss")
+        {//Endboss
             tal = boss;
         }
-        else {
+        else { //Default ist der Sprecher
             tal = talker;
         }
-        if(box == null || box.isRemoved()){
-            box = new Textbox(msg, tal);
-            this.addActor(box);
-            msgs.remove(msg);
+        if(box == null || box.isRemoved())
+        {//Ist box null oder "gelöscht"
+            box = new Textbox(msg, tal); //neue Textbox initialisieren
+            this.addActor(box); //Als Actor zur aktuellen Stage hinzufügen
         }
-        else{
-            msgs.add(new Textbox(msg, tal));
+        else{ //Wenn eine Nachricht gerade abgespielt wird soll diese Nachricht in der Warteschleife hinzugefügt werden
+            msgs.add(new Textbox(msg, tal)); //In die "Warte"-Liste hinzufügen
         }
     }
 
+    /**
+     * Hier mit werden nächste Textboxen abgespielt
+     */
     private void nextTextbox(){
-        if(box == null || box.isRemoved() && msgs.size() > 0){
-            box = msgs.get(0);
-            this.addActor(box);
-            msgs.remove(box);
+        if(box == null || box.isRemoved() && msgs.size() > 0)
+        {//Kann eine neue Textbox abgespielt werden
+            box = msgs.get(0); //erste Textbox in der Liste holen
+            this.addActor(box); //Als Actor hinzufügen
+            msgs.remove(box); //In der Warteschleife löschen
         }
+    }
+
+    /**
+     * Wird pro Frame aufgerufen
+     * @param deltaTime Rendertime
+     */
+    @Override
+    public void act(float deltaTime){
+        nextTextbox(); //nächste Textbox abspielen, wenn möglich
+
+        score.act(deltaTime); //Score berechnen
+        box.act(deltaTime); //Textbox berechnen
     }
 }
