@@ -5,33 +5,24 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import de.sae.flyby.MainGame;
 
-public class Boss extends AActor {
-    private int lifePoints = 320;
-    private boolean isAlive = true;
-
+//TODO Heathbar, throw enemys
+public class Boss extends Enemy {
     public Boss(){
         super(-64, Gdx.graphics.getWidth() / 2,256,256);
+
+        this.maxLifePoints = 250;
+        this.lifePoints = this.maxLifePoints;
 
         this.setTexture(new TextureRegion(MainGame.getTexture(), 320, 128, 64, 64));
     }
 
     public boolean getIsAlive(){
-        return isAlive;
+        return this.lifePoints > 0;
     }
 
     @Override
     public void update(float deltaTime){
-        float height = MathUtils.sin(deltaTime);
-        this.move(this.getX(), height);
-    }
-
-    public void getHitFromGrade(int value){
-        lifePoints -= value;
-        if(lifePoints < 1){
-            //TODO Explosion
-            this.remove();
-            this.isAlive = false;
-            this.body.setUserData("isDead");
-        }
+        float height = (float)Math.sin(deltaTime)*10;
+        this.move(0, height);
     }
 }

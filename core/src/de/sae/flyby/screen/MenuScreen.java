@@ -7,63 +7,83 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import de.sae.flyby.MainGame;
 import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.Background;
+import de.sae.flyby.objects.Options;
 
 //TODO: Menu -> background music
 public class MenuScreen implements Screen {
-    private Stage main;
-    //private Stage options;
-    //private Stage credits;
+    private Stage background = new Stage(), mainStage = new Stage(), optionsStage = new Stage();
+    private Boolean isMainStage = true;
     private Sound menuSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/menu.mp3"));
-    private long menuSoundId = -1;
-    private Table table;
+    private Table startTable = new Table(), optionsTable = new Table();
 
     public MenuScreen(){
-        main = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(main);
-        table = new Table();
+        this.loading();
+        Gdx.input.setInputProcessor(mainStage);
     }
 
-
-    @Override
-    public void show(){
-        menuSoundId = menuSound.loop();
-        table.setFillParent(true);
-        table.setDebug(false);
+    private void loading(){
+        de.sae.flyby.objects.Sound.playSound("menu");
+        startTable.setFillParent(true);
+        optionsTable.setDebug(true);
 
         Background bg = new Background();
-        main.addActor(bg);
+        background.addActor(bg);
 
-        main.addActor(table);
+        mainStage.addActor(startTable);
 
         this.createTitle("SAE Project");
 
-        this.createButton("Start",new ChangeListener() {
+        this.createButton("Start", startTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                menuSound.stop(menuSoundId);
+                de.sae.flyby.objects.Sound.stopSound("menu");
                 SAEGame.currentGame.setScreen(new GameScreen());
             }
         });
-        //TODO: Option Stage
-        /*this.createButton("Options",new ChangeListener() {
+        this.createButton("Options", startTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
+                Gdx.input.setInputProcessor(optionsStage);
+                isMainStage = false;
             }
-        });*/
-        this.createButton("Schliessen",new ChangeListener() {
+        });
+        this.createButton("Schliessen", startTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
             }
         });
+
+        initOptions();
+    }
+
+    private void initOptions(){
+        optionsTable.setFillParent(true);
+        optionsStage.addActor(optionsTable);
+
+        this.createCheckbox("Sound", true, optionsTable, new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Options.isSoundOn = ((CheckBox)actor).isChecked();
+            }
+        });
+        this.createButton("Back", optionsTable, new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.input.setInputProcessor(mainStage);
+                isMainStage = true;
+            }
+        });
+    }
+
+    @Override
+    public void show(){
     }
 
     private void createTitle(String text){
@@ -74,11 +94,14 @@ public class MenuScreen implements Screen {
         TextField titleGame = new TextField(text, titleStyle);
         titleGame.setDisabled(true);
 
-        table.add(titleGame).size(400, 200);
-        table.row().pad(10, 0, 10, 0);
+        startTable.add(titleGame).size(400, 200);
+        startTable.row().pad(10, 0, 10, 0);
+
+        optionsTable.add(titleGame).size(400, 200);
+        optionsTable.row().pad(10, 0, 10, 0);
     }
 
-    private void createButton(String text, ChangeListener listener){
+    private void createButton(String text, Table table, ChangeListener listener){
         TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
 
         BitmapFont font = SAEGame.getFont(25);
@@ -96,18 +119,44 @@ public class MenuScreen implements Screen {
         table.row().pad(10, 0, 10, 0);
     }
 
+    private void createCheckbox(String text, Boolean value, Table table, ChangeListener listener){
+        CheckBox.CheckBoxStyle checkboxStyle = new CheckBox.CheckBoxStyle();
+        checkboxStyle.font = MainGame.getFont(20);
+        checkboxStyle.fontColor = Color.BLACK;
+
+        CheckBox checkBox = new CheckBox(text, checkboxStyle);
+        checkBox.setChecked(value);
+
+        table.add(checkBox).fillX().uniformX();
+        table.row().pad(10, 0, 10, 0);
+    }
+
+    private void createScrollpane(String text, Table table, ChangeListener listener){
+        ScrollPane.ScrollPaneStyle paneStyle = new ScrollPane.ScrollPaneStyle();
+
+        ScrollPane pane = new ScrollPane(table, paneStyle);
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(Gdx.gl20.GL_COLOR_BUFFER_BIT);
 
-        main.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-        main.draw();
+        background.act(delta);
+        background.draw();
+
+        if (isMainStage) {
+            mainStage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+            mainStage.draw();
+        } else {
+            optionsStage.act(delta);
+            optionsStage.draw();
+        }
     }
 
     @Override
     public void resize(int width, int height) {
-        main.getViewport().update(width, height, true);
+        mainStage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -130,6 +179,6 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        main.dispose();
+        mainStage.dispose();
     }
 }

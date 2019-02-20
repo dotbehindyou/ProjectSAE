@@ -18,18 +18,23 @@ public class Sound {
     public static void playSound(String name){
         name = name.toLowerCase();
         if(name == "gameover"){
-            gameover.play();
+            gameover.setVolume(Options.musicVolume);
             gameover.setLooping(true);
+            gameover.play();
         }else if(name == "ingame"){
+            ingame.setVolume(Options.musicVolume);
             ingame.setLooping(true);
             ingame.play();
         }else if(name == "menu"){
+            menu.setVolume(Options.musicVolume);
             menu.setLooping(true);
             menu.play();
         }else if(name == "boss"){
+            boss.setVolume(Options.musicVolume);
             boss.setLooping(true);
             boss.play();
         }else if(name == "text"){
+            text.setVolume(Options.musicVolume);
             text.setLooping(true);
             text.play();
         }

@@ -202,6 +202,7 @@ public class GameScreen implements Screen {
             if(spawnTimer + (spawnTicks) < currentTimeMillis)
             { //Sind 500ms vergangen seit dem letzten Spawn
                 Sound.stopSound("boss"); //Endbossmusik Stoppen
+                Sound.playSound("ingame"); //Normal Musik stoppen
 
                 spawnTimer = currentTimeMillis; //Letzter Spawn Zeit setzen
 

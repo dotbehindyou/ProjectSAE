@@ -80,9 +80,7 @@ public class Textbox extends Actor {
 
     @Override
     public void act(float deltaTime){
-        if(soundId == -1){
-            Sound.playSound("text");
-        }
+        Sound.playSound("text");
         if(currentText.length() < currentMainText.length()) {
             if (lastTime + (50) < elapsedTime) {
                 lastTime = elapsedTime;

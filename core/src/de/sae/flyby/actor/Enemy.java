@@ -35,7 +35,6 @@ public class Enemy extends AActor {
     public int maxLifePoints;           //Maximale Lebenspunkte. Wird nie verändert nach Initialisierung!
     public int textureIndex;            //Texture Index für "textureRegions" und "lowLifeTexture"
 
-
     /**
      * @param x X Position des Gegners
      * @param y Y Position des Gegners
@@ -63,6 +62,9 @@ public class Enemy extends AActor {
         this.setTexture(textureRegions[textureIndex]); //Texture wird initialisiert
     }
 
+    public Enemy(float x, float y, float w, float h){
+        super(x, y, w, h);
+    }
 
     /**
      * @param grade Die Größer der Note (1 bis 6)
