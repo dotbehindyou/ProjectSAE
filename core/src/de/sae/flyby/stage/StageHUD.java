@@ -94,7 +94,7 @@ public class StageHUD extends Stage {
 
     public void initBossLifebar(int maxLife){
         bossLifebar = new Lifebar(64f, 64f, Gdx.graphics.getWidth() - 64f, 64, maxLife);
-        this.addActor(bossLifebar);
+        //this.addActor(bossLifebar);
     }
 
     public void setBossLifebar(int life){
@@ -132,7 +132,7 @@ public class StageHUD extends Stage {
 
         if(bossLifebar != null)
         {
-            bossLifebar.act(deltaTime);
+            //bossLifebar.act(deltaTime);
         }
     }
 }

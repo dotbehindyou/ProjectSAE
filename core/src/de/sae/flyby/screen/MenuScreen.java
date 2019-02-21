@@ -44,14 +44,14 @@ public class MenuScreen implements Screen {
                 de.sae.flyby.objects.Sound.stopSound("menu");
                 SAEGame.currentGame.setScreen(new GameScreen());
             }
-        });
+        });/*
         this.createButton("Options", startTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.input.setInputProcessor(optionsStage);
                 isMainStage = false;
             }
-        });
+        });*/
         this.createButton("Schliessen", startTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
