@@ -44,7 +44,6 @@ public class Sound {
         boss.stop();
         menu.stop();
         gameover.stop();
-        text.stop();
         ingame.stop();
     }
 

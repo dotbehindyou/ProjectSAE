@@ -1,5 +1,6 @@
 package de.sae.flyby.stage;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -18,9 +19,6 @@ public class StageGameover extends Stage {
     private Table table;
 
     public StageGameover(){
-        Sound.resetSounds();
-        Sound.playSound("gameover");
-
         table = new Table();
 
         table.setFillParent(true);

@@ -7,8 +7,12 @@ import de.sae.flyby.MainGame;
 
 //TODO Heathbar, throw enemys
 public class Boss extends Enemy {
+    public float sinTime;
+
+    final static float startX = 256, startY = 256;
+
     public Boss(){
-        super(-64, Gdx.graphics.getWidth() / 2,256,256);
+        super(startX, startY,256,256);
 
         this.maxLifePoints = 250;
         this.lifePoints = this.maxLifePoints;
@@ -22,6 +26,7 @@ public class Boss extends Enemy {
 
     @Override
     public void update(float deltaTime){
+        sinTime += deltaTime;
         float height = (float)Math.sin(deltaTime)*10;
         this.move(0, height);
     }

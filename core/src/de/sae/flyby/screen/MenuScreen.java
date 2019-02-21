@@ -19,7 +19,6 @@ import de.sae.flyby.objects.Options;
 public class MenuScreen implements Screen {
     private Stage background = new Stage(), mainStage = new Stage(), optionsStage = new Stage();
     private Boolean isMainStage = true;
-    private Sound menuSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/sound/menu.mp3"));
     private Table startTable = new Table(), optionsTable = new Table();
 
     public MenuScreen(){
@@ -37,7 +36,7 @@ public class MenuScreen implements Screen {
 
         mainStage.addActor(startTable);
 
-        this.createTitle("SAE Project");
+        this.createTitle("SAE Project", startTable);
 
         this.createButton("Start", startTable, new ChangeListener() {
             @Override
@@ -67,6 +66,8 @@ public class MenuScreen implements Screen {
         optionsTable.setFillParent(true);
         optionsStage.addActor(optionsTable);
 
+        this.createTitle("SAE Project", optionsTable);
+
         this.createCheckbox("Sound", true, optionsTable, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -86,7 +87,7 @@ public class MenuScreen implements Screen {
     public void show(){
     }
 
-    private void createTitle(String text){
+    private void createTitle(String text, Table table){
         TextField.TextFieldStyle titleStyle = new TextField.TextFieldStyle();
         titleStyle.font = SAEGame.getFont(45);
         titleStyle.fontColor = Color.OLIVE;
@@ -94,11 +95,8 @@ public class MenuScreen implements Screen {
         TextField titleGame = new TextField(text, titleStyle);
         titleGame.setDisabled(true);
 
-        startTable.add(titleGame).size(400, 200);
-        startTable.row().pad(10, 0, 10, 0);
-
-        optionsTable.add(titleGame).size(400, 200);
-        optionsTable.row().pad(10, 0, 10, 0);
+        table.add(titleGame).size(400, 200);
+        table.row().pad(10, 0, 10, 0);
     }
 
     private void createButton(String text, Table table, ChangeListener listener){

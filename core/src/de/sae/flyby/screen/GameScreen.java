@@ -48,6 +48,8 @@ public class GameScreen implements Screen {
     }
 
     public GameScreen(){
+        Gdx.input.setInputProcessor(ingame);
+
         ingame = new Stage();       //Ingame wird initialisiert
         hud = new StageHUD(false);       //HUD wird initialisiert
 
@@ -58,12 +60,15 @@ public class GameScreen implements Screen {
 
     //Spiel im GameOver Modus setzen
     public void gameOver(){;
+        Sound.resetSounds();
+        Sound.playSound("gameover");
     //Textboxen hinzufügen
         hud.setTextbox("Leider bist du TOT und hast alle deine Punkte verloren :(", "talker");
         hud.setTextbox("Du IDIOT! Dafuer lass ich dich toeten! Ach warte, du bist ja schon tot :D", "lord");
 
         //"gameover" Stage deklarieren
         gameover = new StageGameover();
+        Gdx.input.setInputProcessor(gameover);
     }
 
     /**
@@ -113,13 +118,13 @@ public class GameScreen implements Screen {
 
         groundBodyDef = new BodyDef();
         groundBodyDef.type = BodyDef.BodyType.StaticBody;
-        groundBodyDef.position.set(new Vector2(0, 0));
+        groundBodyDef.position.set(new Vector2(-64f, 0));
         Body left = world.createBody(groundBodyDef);
         left.setUserData("left");
 
         groundBodyDef = new BodyDef();
         groundBodyDef.type = BodyDef.BodyType.StaticBody;
-        groundBodyDef.position.set(new Vector2(ingame.getCamera().viewportWidth, 0));
+        groundBodyDef.position.set(new Vector2(ingame.getCamera().viewportWidth + 64f, 0));
         Body right = world.createBody(groundBodyDef);
         right.setUserData("right");
 
@@ -213,7 +218,7 @@ public class GameScreen implements Screen {
                 int spawnPos = new Random().nextInt((Gdx.graphics.getHeight() - MARGIN_TOP) + 1) + MARGIN_BOTTOM;
 
                 //Gegner deklarieren und hinzufügen
-                addActor(new Enemy(0, spawnPos));
+                addActor(new Enemy(-64, spawnPos));
             }
         }else{
             if(!isBossLife)
