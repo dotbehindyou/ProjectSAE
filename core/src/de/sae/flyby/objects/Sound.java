@@ -40,6 +40,21 @@ public class Sound {
         }
     }
 
+    public static Boolean isSoundPlaying(String name){
+        if(name == "gameover"){
+            return gameover.isPlaying();
+        }else if(name == "ingame"){
+            return ingame.isPlaying();
+        }else if(name == "menu"){
+            return menu.isPlaying();
+        }else if(name == "boss"){
+            return boss.isPlaying();
+        }else if(name == "text"){
+            return text.isPlaying();
+        }else
+            return false;
+    }
+
     public static void resetSounds(){
         boss.stop();
         menu.stop();

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import de.sae.flyby.MainGame;
+import de.sae.flyby.actor.Lifebar;
 import de.sae.flyby.actor.Textbox;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class StageHUD extends Stage {
     private Label score;         //Label für die Punktzahl, was gezeichnet wird
     private Textbox box ;        //Textbox
     private List<Textbox> msgs = new ArrayList<Textbox>(); //Aktuell nachzuzeichende Textboxen
+    private Lifebar bossLifebar;
 
     /**
      * @return Aktuelle Punktzahl
@@ -52,7 +54,6 @@ public class StageHUD extends Stage {
             setTextbox("Hoehr nicht auf diesen Idioten! Ich bin Lord Chungus. Und Befehle dir den Boss zu besiegen.", "lord");
         }
     }
-
 
     /**
      * Hiermit werden Punkte hinzugefügt für den aktuellen Punktestand
@@ -91,6 +92,21 @@ public class StageHUD extends Stage {
         }
     }
 
+    public void initBossLifebar(int maxLife){
+        bossLifebar = new Lifebar(64f, 64f, Gdx.graphics.getWidth() - 64f, 64, maxLife);
+        this.addActor(bossLifebar);
+    }
+
+    public void setBossLifebar(int life){
+        if(bossLifebar != null)
+            bossLifebar.setLife(life);
+    }
+
+    public void removeLifebar(){
+        if(bossLifebar != null)
+            bossLifebar.remove();
+    }
+
     /**
      * Hier mit werden nächste Textboxen abgespielt
      */
@@ -113,5 +129,10 @@ public class StageHUD extends Stage {
 
         score.act(deltaTime); //Score berechnen
         box.act(deltaTime); //Textbox berechnen
+
+        if(bossLifebar != null)
+        {
+            bossLifebar.act(deltaTime);
+        }
     }
 }

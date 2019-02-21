@@ -2,18 +2,11 @@ package de.sae.flyby.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
-import de.sae.flyby.SAEGame;
 import de.sae.flyby.actor.*;
 import de.sae.flyby.listener.HitListener;
 import de.sae.flyby.objects.Sound;
@@ -31,12 +24,15 @@ public class GameScreen implements Screen {
     private StageHUD hud;               //HUD (Punkte, Textbox, etc)
     private Stage ingame;               //Ingame (Spieler, Hintergrund, Enemys, Noten, etc)
     private StageGameover gameover;     //GameOver (Neustart, Beenden, etc)
-    private int nextBossSpawn = 100;    //Ab welcher Punktzahl kommt der Gegner ?
+    private int nextBossSpawn = 20;    //Ab welcher Punktzahl kommt der Gegner ?
     private long currentTimeMillis;     //Aktuelle Zeit in Millisekunden
     private long spawnTimer = 0L;       //Wann wurde zuletzt ein Enemy gespawnt
     private int spawnTicks = 500;       //Nach wieviel Millisekunden soll der nächste Gegner spawnen
     private boolean isBossLife;         //Ist der Endboss am leben
     private Boss currentBoss;           //Aktueller Endboss
+    private Image bossLifebar;
+
+    private Player mainPlayer;
 
     public World world;     //Hitbox Welt
 
@@ -45,6 +41,10 @@ public class GameScreen implements Screen {
      */
     public StageHUD getHUD(){
         return hud;
+    }
+
+    public Player getPlayer(){
+        return mainPlayer;
     }
 
     public GameScreen(){
@@ -83,7 +83,9 @@ public class GameScreen implements Screen {
         this.generateBorder(); //Weltgrenzen setzen
 
         ingame.addActor(new Background()); //Hintergrund initialisieren und hinzufügen
-        this.addActor(new Player());       //Spieler initialisieren und hinzufügen
+
+        this.mainPlayer = new Player();
+        this.addActor(this.mainPlayer);       //Spieler initialisieren und hinzufügen
 
         currentTimeMillis = System.currentTimeMillis(); //Aktuelle Zeit setzen
     }
@@ -206,9 +208,11 @@ public class GameScreen implements Screen {
         { //Sind die Punkte NICHT ausreichend um einen Endboss spawnen zu lassen und ist der Endboss NICHT am leben
             if(spawnTimer + (spawnTicks) < currentTimeMillis)
             { //Sind 500ms vergangen seit dem letzten Spawn
-                Sound.stopSound("boss"); //Endbossmusik Stoppen
-                Sound.playSound("ingame"); //Normal Musik stoppen
-
+                if(Sound.isSoundPlaying("boss"))
+                    Sound.stopSound("boss"); //Endbossmusik Stoppen
+                if(!Sound.isSoundPlaying("gameover")){
+                    Sound.playSound("ingame"); //Normal Musik stoppen
+                }
                 spawnTimer = currentTimeMillis; //Letzter Spawn Zeit setzen
 
                 final int MARGIN_TOP = 10; //Wie viel Pixel abstand zu oben
@@ -222,8 +226,9 @@ public class GameScreen implements Screen {
             }
         }else{
             if(!isBossLife)
-            {//Ist der Endboss NICHT am leben
+            {//Ist der Endboss NICHT am lebe
                 currentBoss = new Boss(); //Neuen Boss initialisieren
+                hud.initBossLifebar(currentBoss.getLifePoints());
                 addActor(currentBoss); //Boss hinzufügen
                 Sound.stopSound("ingame"); //Normal Musik stoppen
                 Sound.playSound("boss"); //Boss Musik abspielen lassen
@@ -235,6 +240,7 @@ public class GameScreen implements Screen {
                 hud.setTextbox("HAHAHA! Ihr könnt nicht fliehen!", "boss");
             }
             isBossLife = currentBoss.getIsAlive(); //Abgleichen ob der Endboss noch am Leben ist
+            hud.setBossLifebar(currentBoss.getLifePoints());
         }
     }
 

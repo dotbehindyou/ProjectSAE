@@ -1,9 +1,11 @@
 package de.sae.flyby.actor;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.MassData;
 import de.sae.flyby.MainGame;
+import de.sae.flyby.screen.GameScreen;
 import de.sae.flyby.stage.StageHUD;
 
 import java.util.Random;
@@ -25,15 +27,19 @@ public class Enemy extends AActor {
     //Hier sind alle TextureRegions, für die Gegner die wenig Leben haben (auser Boss!)
     //*Siehe oben zweiter Kommentar von "textureRegions"
     final static TextureRegion[] lowLifeTexture = new TextureRegion[]{
-        new TextureRegion(MainGame.getTexture(), 192, 64, 64, 64),      //Jann
-        new TextureRegion(MainGame.getTexture(), 256, 64, 64, 64),      //Sebi
-        new TextureRegion(MainGame.getTexture(), 320, 64, 64, 64),      //Chris
-        new TextureRegion(MainGame.getTexture(), 192, 192, 64, 64),     //Paul
-    };
+            new TextureRegion(MainGame.getTexture(), 192, 64, 64, 64),      //Jann
+            new TextureRegion(MainGame.getTexture(), 256, 64, 64, 64),      //Sebi
+            new TextureRegion(MainGame.getTexture(), 320, 64, 64, 64),      //Chris
+            new TextureRegion(MainGame.getTexture(), 192, 192, 64, 64),     //Paul
+        };
 
-    public int lifePoints;              //Lebenspunkte
-    public int maxLifePoints;           //Maximale Lebenspunkte. Wird nie verändert nach Initialisierung!
-    public int textureIndex;            //Texture Index für "textureRegions" und "lowLifeTexture"
+    protected int lifePoints;              //Lebenspunkte
+    protected int maxLifePoints;           //Maximale Lebenspunkte. Wird nie verändert nach Initialisierung!
+    protected int textureIndex;            //Texture Index für "textureRegions" und "lowLifeTexture"
+
+    public int getLifePoints(){
+        return lifePoints;
+    }
 
     /**
      * @param x X Position des Gegners
