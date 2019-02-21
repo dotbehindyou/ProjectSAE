@@ -80,30 +80,37 @@ public class Textbox extends Actor {
 
     @Override
     public void act(float deltaTime){
-        Sound.playSound("text");
-        if(currentText.length() < currentMainText.length()) {
-            if (lastTime + (50) < elapsedTime) {
+        Sound.playSound("text"); //Spiele Text Sound ab.
+        if(currentText.length() < currentMainText.length())
+        {//Ist der NICHT fertig?
+            if (lastTime + (50) < elapsedTime)
+            { //Ist die Zeit von 50 Millisekunden vergangen?
                 lastTime = elapsedTime;
                 currentText = currentMainText.substring(0, currentText.length() + 1);
-                text.setText(currentText + "...");
+                //Füge dem angezeigten Text ein Buchstabe vom Haupttext hinzu
+                text.setText(currentText + "..."); //Aktualisiere das Objekt auf der Oberfläche
 
             }
         }
-        else if((index + 1) == mainText.size()){
-            if (lastTime + (2000) < elapsedTime) {
+        else if((index + 1) == mainText.size())
+        { //Sind alle Sätze durchgelaufen?
+            if (lastTime + (2000) < elapsedTime)
+            {//Warte 2 Sekunden
                 lastTime = elapsedTime;
-                this.remove();
-                this.isFin = true;
+                this.remove(); //Entferne das Objekt auf der Oberfläche
+                this.isFin = true; //Setzte das Objekt als "fertig"
             }
-            Sound.stopSound("text");
+            Sound.stopSound("text"); //Stoppe den Textsound
         }
-        else{
-            if (lastTime + (1000) < elapsedTime) {
-                ++index;
-                currentMainText = mainText.get(index);
-                currentText = "";
+        else { //Wenn der Satz zu ende ist
+            if (lastTime + (1000) < elapsedTime)
+            { //Warte 1 Sekunde
+                ++index; //Setzte den Counter hoch
+                currentMainText = mainText.get(index); //Nehme den nächsten Satz
+                currentText = ""; //Leere den aktuellen Text;
             }
             Sound.stopSound("text");
+            //Stoppe den Sound
         }
         elapsedTime = System.currentTimeMillis();
     }

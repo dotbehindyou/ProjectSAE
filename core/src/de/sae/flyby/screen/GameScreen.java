@@ -24,14 +24,12 @@ public class GameScreen implements Screen {
     private StageHUD hud;               //HUD (Punkte, Textbox, etc)
     private Stage ingame;               //Ingame (Spieler, Hintergrund, Enemys, Noten, etc)
     private StageGameover gameover;     //GameOver (Neustart, Beenden, etc)
-    private int nextBossSpawn = 20;    //Ab welcher Punktzahl kommt der Gegner ?
+    private int nextBossSpawn = 120;    //Ab welcher Punktzahl kommt der Gegner ?
     private long currentTimeMillis;     //Aktuelle Zeit in Millisekunden
     private long spawnTimer = 0L;       //Wann wurde zuletzt ein Enemy gespawnt
     private int spawnTicks = 500;       //Nach wieviel Millisekunden soll der nächste Gegner spawnen
     private boolean isBossLife;         //Ist der Endboss am leben
     private Boss currentBoss;           //Aktueller Endboss
-    private Image bossLifebar;
-
     private Player mainPlayer;
 
     public World world;     //Hitbox Welt
